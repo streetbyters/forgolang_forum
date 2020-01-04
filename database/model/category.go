@@ -14,48 +14,35 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package cmn
+package model
 
 import (
 	"forgolang_forum/database"
-	"forgolang_forum/model"
-	"forgolang_forum/thirdparty/aws"
-	"forgolang_forum/utils"
-	"os"
+	"time"
 )
 
-// App structure
-type App struct {
-	Database *database.Database
-	Channel  chan os.Signal
-	Config   *model.Config
-	Logger   *utils.Logger
-	Mode     model.MODE
-	Storage  *aws.S3
-	Email    *aws.SES
+// Category base post artifacts
+type Category struct {
+	database.DBInterface `json:"-"`
+	ID                   int64     `db:"id" json:"id"`
+	Title                string    `db:"title" json:"title" validate:"required,gte=3,lte=128"`
+	Description          string    `db:"description" json:"description" validate:"lte=240"`
+	Slug                 string    `db:"slug" json:"slug" unique:"categories_slug_unique"`
+	InsertedAt           time.Time `db:"inserted_at" json:"inserted_at"`
+	UpdatedAt            time.Time `db:"updated_at" json:"updated_at"`
 }
 
-// NewApp building new app
-func NewApp(config *model.Config, logger *utils.Logger) *App {
-	app := &App{
-		Config: config,
-		Logger: logger,
-	}
-
-	awsConfig, err := aws.Config(app.Config.Path, app.Config.EnvFile)
-	FailOnError(logger, err)
-	app.Storage, err = aws.NewS3(awsConfig)
-	FailOnError(logger, err)
-	app.Email, err = aws.NewSES(awsConfig)
-	FailOnError(logger, err)
-
-	return app
+// NewCategory generate category struct
+func NewCategory() *Category {
+	return &Category{}
 }
 
-// FailOnError panic error with logger
-func FailOnError(logger *utils.Logger, err error) {
-	if err != nil {
-		logger.Panic().Err(err)
-		panic(err)
-	}
+// TableName category database
+func (m Category) TableName() string {
+	return "categories"
+}
+
+// ToJSON category struct to json string
+func (m Category) ToJSON() string {
+	return database.ToJSON(m)
 }

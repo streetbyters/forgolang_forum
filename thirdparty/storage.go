@@ -14,23 +14,13 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package api
+package thirdparty
 
-import (
-	"forgolang_forum/model"
-	"github.com/valyala/fasthttp"
-	"net/http"
-)
-
-// HomeController base controller
-type HomeController struct {
-	Controller
-	*API
-}
-
-// Index api base route
-func (c HomeController) Index(ctx *fasthttp.RequestCtx) {
-	c.JSONResponse(ctx, model.ResponseSuccess{
-		Data: "Forgolang",
-	}, http.StatusOK)
+// Storage third-party app interface
+type Storage interface {
+	Config() (map[string]string, error)
+	List(args ...interface{}) ([]map[string]interface{}, error)
+	Delete(args ...interface{}) error
+	Upload(args ...interface{}) error
+	Download(args ...interface{}) (interface{}, error)
 }

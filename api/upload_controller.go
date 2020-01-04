@@ -17,6 +17,7 @@
 package api
 
 import (
+	"fmt"
 	"forgolang_forum/model"
 	"github.com/valyala/fasthttp"
 	"path/filepath"
@@ -39,17 +40,25 @@ func (c UploadController) Create(ctx *fasthttp.RequestCtx) {
 		return
 	}
 
-	err = fasthttp.SaveMultipartFile(file, filepath.Join(string("dir"), file.Filename))
-	if err != nil {
+	dir := ctx.FormValue("dir")
+	if string(dir) == "" {
 		c.JSONResponse(ctx, model.ResponseError{
-			Errors: nil,
-			Detail: err.Error(),
-		}, fasthttp.StatusInternalServerError)
+			Errors: map[string]string{
+				"dir": "is not nil",
+			},
+			Detail: fasthttp.StatusMessage(fasthttp.StatusUnprocessableEntity),
+		}, fasthttp.StatusUnprocessableEntity)
 		return
+	}
+
+	err = c.App.Storage.Upload(file, filepath.Join(string(dir), file.Filename), "public-read")
+	if err != nil {
+		fmt.Println(err)
 	}
 
 	resp := make(map[string]string)
 	resp["filename"] = file.Filename
+	resp["dir"] = string(dir)
 
 	c.JSONResponse(ctx, model.ResponseSuccessOne{
 		Data: resp,

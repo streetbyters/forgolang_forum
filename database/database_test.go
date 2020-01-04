@@ -2,7 +2,7 @@ package database
 
 import (
 	"forgolang_forum/model"
-	"github.com/akdilsiz/agente/utils"
+	"forgolang_forum/utils"
 	"io/ioutil"
 	"os"
 	"path/filepath"
@@ -152,7 +152,7 @@ func Test_InstallDB(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	data, err = ioutil.ReadFile(filepath.Join(config.DBPath, "sql", "postgres", "04.create_files_table.down.sql"))
+	data, err = ioutil.ReadFile(filepath.Join(config.DBPath, "sql", "postgres", "04.category_and_post_tables.down.sql"))
 	if err != nil {
 		t.Fatal(err)
 	}

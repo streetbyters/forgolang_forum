@@ -18,6 +18,7 @@ package model
 
 // Config Application config structure
 type Config struct {
+	EnvFile      string `json:"env_file"`
 	Path         string `json:"path"`
 	Mode         MODE   `json:"mode"`
 	Port         int    `json:"port"`
@@ -40,4 +41,5 @@ type Config struct {
 	RedisPort    int    `json:"redis_port"`
 	RedisPass    string `json:"redis_pass"`
 	RedisDB      int    `json:"redis_db"`
+	CDNUrl       string `json:"cdn_url"`
 }

@@ -14,48 +14,32 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package cmn
+package model
 
 import (
 	"forgolang_forum/database"
-	"forgolang_forum/model"
-	"forgolang_forum/thirdparty/aws"
-	"forgolang_forum/utils"
-	"os"
+	"time"
 )
 
-// App structure
-type App struct {
-	Database *database.Database
-	Channel  chan os.Signal
-	Config   *model.Config
-	Logger   *utils.Logger
-	Mode     model.MODE
-	Storage  *aws.S3
-	Email    *aws.SES
+// Post discussion topics created by users
+type Post struct {
+	database.DBInterface `json:"-"`
+	ID                   int64     `db:"id" json:"id"`
+	AuthorID             int64     `db:"author_id" json:"author_id" foreign:"fk_posts_author_id" validate:"required"`
+	InsertedAt           time.Time `db:"inserted_at" json:"inserted_at"`
 }
 
-// NewApp building new app
-func NewApp(config *model.Config, logger *utils.Logger) *App {
-	app := &App{
-		Config: config,
-		Logger: logger,
-	}
-
-	awsConfig, err := aws.Config(app.Config.Path, app.Config.EnvFile)
-	FailOnError(logger, err)
-	app.Storage, err = aws.NewS3(awsConfig)
-	FailOnError(logger, err)
-	app.Email, err = aws.NewSES(awsConfig)
-	FailOnError(logger, err)
-
-	return app
+// NewPost generate post struct
+func NewPost(authorID int64) *Post {
+	return &Post{AuthorID: authorID}
 }
 
-// FailOnError panic error with logger
-func FailOnError(logger *utils.Logger, err error) {
-	if err != nil {
-		logger.Panic().Err(err)
-		panic(err)
-	}
+// TableName post database
+func (m Post) TableName() string {
+	return "posts"
+}
+
+// ToJSON post structure to json string
+func (m Post) ToJSON() string {
+	return database.ToJSON(m)
 }

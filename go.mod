@@ -4,6 +4,7 @@ go 1.13
 
 require (
 	github.com/akdilsiz/agente v0.0.0-20191229212652-e64886965a76
+	github.com/aws/aws-sdk-go v1.27.0
 	github.com/dgrijalva/jwt-go v3.2.0+incompatible
 	github.com/fate-lovely/phi v0.0.0-20171026043140-ee6510b82038
 	github.com/go-sql-driver/mysql v1.4.1
