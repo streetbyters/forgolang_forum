@@ -18,4 +18,4 @@ vendor/
 .idea/
 .vscode/
 
-prod.env
+secret.env

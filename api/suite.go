@@ -35,6 +35,7 @@ import (
 	"net"
 	"os"
 	"path"
+	"path/filepath"
 	"reflect"
 	"strings"
 	"testing"
@@ -111,7 +112,18 @@ func NewSuite() *Suite {
 	err := viper.ReadInConfig()
 	cmn.FailOnError(logger, err)
 
+	file, err := ioutil.ReadFile(filepath.Join(appPath, "secret.env"))
+	if err != nil {
+		panic(err)
+	}
+	buffer := bytes.NewReader(file)
+	err = viper.MergeConfig(buffer)
+	if err != nil {
+		panic(err)
+	}
+
 	config := &model.Config{
+		EnvFile:      configFile,
 		Path:         appPath,
 		Port:         viper.GetInt("PORT"),
 		SecretKey:    viper.GetString("SECRET_KEY"),

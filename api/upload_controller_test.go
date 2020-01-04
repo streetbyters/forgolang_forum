@@ -16,19 +16,32 @@ func (s UploadControllerTest) SetupSuite() {
 }
 
 func (s UploadControllerTest) Test_PostUploadFile() {
-	file1 := filepath.Join(s.API.App.Config.Path, "files", "tests", "forgolang.png")
+	file1 := filepath.Join(s.API.App.Config.Path, "assets", "user.png")
 
 	body := make(map[string]interface{})
 	body["file"] = file1
-	body["dir"] = filepath.Join(s.API.App.Config.Path, "files", "tests", "upload")
+	body["dir"] = filepath.Join("test", "upload")
 
 	response := s.File(Post, "/api/v1/upload", body, "file")
 
 	s.Equal(response.Status, fasthttp.StatusCreated)
 	data, _ := response.Success.Data.(map[string]interface{})
-	s.Equal(data["filename"], "forgolang.png")
+	s.Equal(data["filename"], "user.png")
 
 	defaultLogger.LogInfo("Post upload file")
+}
+
+func (s UploadControllerTest) Test_Should_422Err_PostUploadFileIFDirIsNil() {
+	file1 := filepath.Join(s.API.App.Config.Path, "assets", "user.png")
+
+	body := make(map[string]interface{})
+	body["file"] = file1
+
+	response := s.File(Post, "/api/v1/upload", body, "file")
+
+	s.Equal(response.Status, fasthttp.StatusUnprocessableEntity)
+
+	defaultLogger.LogInfo("Should be 422 error post upload file if dir is nil")
 }
 
 func (s UploadControllerTest) Test_Should_400Err_PostUploadFileIfFileNotValid() {
@@ -42,32 +55,6 @@ func (s UploadControllerTest) Test_Should_400Err_PostUploadFileIfFileNotValid() 
 	s.Equal(response.Status, fasthttp.StatusBadRequest)
 
 	defaultLogger.LogInfo("Should 400 error post upload file if file is not valid")
-}
-
-func (s UploadControllerTest) Test_Should_422Err_PostUploadFileIfDirIsNil() {
-	file1 := filepath.Join(s.API.App.Config.Path, "files", "tests", "forgolang.png")
-
-	body := make(map[string]interface{})
-	body["file"] = file1
-
-	response := s.File(Post, "/api/v1/upload", body, "file")
-
-	s.Equal(response.Status, fasthttp.StatusUnprocessableEntity)
-
-	defaultLogger.LogInfo("Should be 422 error post upload file if dir is nil")
-}
-
-func (s UploadControllerTest) Test_Should_500Error_PostUploadFileIfDirPermissionError() {
-	file1 := filepath.Join(s.API.App.Config.Path, "files", "tests", "forgolang.png")
-
-	body := make(map[string]interface{})
-	body["file"] = file1
-
-	response := s.File(Post, "/api/v1/upload", body, "file")
-
-	s.Equal(response.Status, fasthttp.StatusInternalServerError)
-
-	defaultLogger.LogInfo("Post upload file")
 }
 
 func (s UploadControllerTest) TearDownSuite() {

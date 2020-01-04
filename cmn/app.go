@@ -19,6 +19,7 @@ package cmn
 import (
 	"forgolang_forum/database"
 	"forgolang_forum/model"
+	"forgolang_forum/thirdparty/aws"
 	"forgolang_forum/utils"
 	"os"
 )
@@ -30,6 +31,8 @@ type App struct {
 	Config   *model.Config
 	Logger   *utils.Logger
 	Mode     model.MODE
+	Storage  *aws.S3
+	Email    *aws.SES
 }
 
 // NewApp building new app
@@ -38,6 +41,13 @@ func NewApp(config *model.Config, logger *utils.Logger) *App {
 		Config: config,
 		Logger: logger,
 	}
+
+	awsConfig, err := aws.Config(app.Config.Path, app.Config.EnvFile)
+	FailOnError(logger, err)
+	app.Storage, err = aws.NewS3(awsConfig)
+	FailOnError(logger, err)
+	app.Email, err = aws.NewSES(awsConfig)
+	FailOnError(logger, err)
 
 	return app
 }

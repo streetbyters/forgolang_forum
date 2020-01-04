@@ -17,40 +17,40 @@
 package main
 
 import (
+	"bytes"
 	"errors"
 	"flag"
+	"fmt"
 	"forgolang_forum/api"
 	"forgolang_forum/cmn"
 	"forgolang_forum/database"
 	"forgolang_forum/model"
 	"forgolang_forum/utils"
 	"github.com/spf13/viper"
+	"io/ioutil"
+	"log"
 	"os"
 	"os/signal"
 	"path"
+	"path/filepath"
 	"strings"
 	"syscall"
 )
 
-// configFile App config file name string
-var configFile string
-
-// devMode Development mode flag
-var devMode string
-
-// migrate
-var migrate bool
-
-// reset
-var reset bool
+var (
+	configFile string
+	devMode    string
+	migrate    bool
+	reset      bool
+	mode       model.MODE
+	appPath    string
+	dbPath     string
+	genSecret  bool
+)
 
 func main() {
 	ch := make(chan os.Signal)
 	signal.Notify(ch, syscall.SIGINT, syscall.SIGTERM)
-
-	var mode model.MODE
-	var dbPath string
-	var appPath string
 
 	flag.StringVar(&devMode, "mode", "dev", "Development Mode")
 	flag.BoolVar(&migrate, "migrate", false, "Run migrations")
@@ -58,6 +58,7 @@ func main() {
 	flag.StringVar(&configFile, "config", "", "Config file")
 	flag.StringVar(&dbPath, "dbPath", "", "Database path")
 	flag.StringVar(&appPath, "appPath", "", "Application path")
+	flag.BoolVar(&genSecret, "genSecretEnv", false, "Generate secret env file")
 	flag.Parse()
 
 	if appPath == "" {
@@ -68,6 +69,11 @@ func main() {
 	mode = model.MODE(devMode)
 	appPath = path.Join(dirs[0])
 	dbPath = appPath
+
+	if genSecret {
+		genSecretEnv()
+		return
+	}
 
 	if configFile == "" {
 		configFile = string(mode) + ".env"
@@ -80,7 +86,18 @@ func main() {
 	err := viper.ReadInConfig()
 	cmn.FailOnError(logger, err)
 
+	file, err := ioutil.ReadFile(filepath.Join(appPath, "secret.env"))
+	if err != nil {
+		panic(err)
+	}
+	buffer := bytes.NewReader(file)
+	err = viper.MergeConfig(buffer)
+	if err != nil {
+		panic(err)
+	}
+
 	config := &model.Config{
+		EnvFile:      configFile,
 		Path:         appPath,
 		Port:         viper.GetInt("PORT"),
 		SecretKey:    viper.GetString("SECRET_KEY"),
@@ -133,4 +150,38 @@ func main() {
 	}()
 
 	<-newApp.Channel
+}
+
+func genSecretEnv() {
+	body := []byte(fmt.Sprintf(`SECRET_KEY=%s
+
+CDN_URL=
+
+AWS_SES_ACCESS_KEY_ID=
+AWS_SES_SECRET_ACCESS_KEY=
+AWS_SES_REGION=
+AWS_SES_SOURCE=
+AWS_S3_ACCESS_KEY_ID=
+AWS_S3_SECRET_ACCESS_KEY=
+AWS_S3_BUCKET`, "asdasd"))
+
+	var file *os.File
+	_, err := os.Stat(filepath.Join(appPath, "secret.env"))
+	if err != nil {
+		if os.IsNotExist(err) {
+			file, err = os.Create(filepath.Join(appPath, "secret.env"))
+			if err != nil {
+				log.Fatal(err)
+			}
+			defer file.Close()
+			if _, err := file.Write(body); err != nil {
+				log.Fatal(err)
+			}
+
+			log.Println("Generated secret environment file")
+			return
+		}
+	} else {
+		log.Println("Secret environment file is exists")
+	}
 }

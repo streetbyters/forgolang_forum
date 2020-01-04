@@ -18,7 +18,7 @@ package api
 
 import (
 	"fmt"
-	"github.com/akdilsiz/agente/model"
+	"forgolang_forum/model"
 	"github.com/dgrijalva/jwt-go"
 	"github.com/fate-lovely/phi"
 	"github.com/valyala/fasthttp"

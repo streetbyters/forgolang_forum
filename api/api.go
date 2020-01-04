@@ -19,8 +19,10 @@ package api
 import (
 	"bytes"
 	"encoding/json"
+	"errors"
 	"forgolang_forum/cmn"
 	"forgolang_forum/model"
+	"forgolang_forum/utils"
 	pluggableError "github.com/akdilsiz/agente/errors"
 	"github.com/valyala/fasthttp"
 	"net/url"
@@ -84,6 +86,10 @@ func (a *API) Paginate(ctx *fasthttp.RequestCtx, orderFields ...string) (model.P
 
 	if val, ok := queryParams["order_field"]; ok {
 		pagination.OrderField = val
+		if exists, _ := utils.InArray(val, orderFields); !exists {
+			err = errors.New("order field is not valid")
+			errs["order_field"] = "is not valid"
+		}
 	}
 
 	if err != nil {
