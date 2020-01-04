@@ -14,4 +14,8 @@
 # Dependency directories (remove the comment below to include it)
 vendor/
 
+# Editor Files
+.idea/
+.vscode/
+
 prod.env
