@@ -25,7 +25,9 @@ import (
 )
 
 // GenerateRolePermissions generate role permissions for api controller and methods
-func GenerateRolePermissions(app *cmn.App, apiRoutes map[string]map[string][]string) error {
+func GenerateRolePermissions(app *cmn.App, args ...interface{}) error {
+	apiRoutes := args[0].(map[string]map[string][]string)
+
 	role := model.NewRole()
 	var roles []model.Role
 	app.Database.QueryWithModel(fmt.Sprintf("SELECT * FROM %s", role.TableName()),

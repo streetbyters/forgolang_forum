@@ -141,8 +141,10 @@ func main() {
 	newApp.Database = db
 	newApp.Mode = mode
 
-	_ts := make(map[string]func(app *cmn.App, apiRoutes map[string]map[string][]string)error)
+	// Tasks
+	_ts := make(map[string]func(app *cmn.App, args ...interface{})error)
 	_ts["GenerateRolePermissions"] = tasks.GenerateRolePermissions
+	// Tasks
 
 	if migrate {
 		db.Reset = reset
