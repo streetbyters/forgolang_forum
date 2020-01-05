@@ -23,7 +23,6 @@ import (
 	"forgolang_forum/model"
 	"github.com/akdilsiz/agente/utils"
 	"github.com/valyala/fasthttp"
-	"net/http"
 )
 
 // LoginController user authentication controller
@@ -40,22 +39,27 @@ func (c LoginController) Create(ctx *fasthttp.RequestCtx) {
 	if errs, err := database.ValidateStruct(loginRequest); err != nil {
 		c.JSONResponse(ctx, model.ResponseError{
 			Errors: errs,
-			Detail: http.StatusText(http.StatusUnprocessableEntity),
-		}, http.StatusUnprocessableEntity)
+			Detail: fasthttp.StatusMessage(fasthttp.StatusUnprocessableEntity),
+		}, fasthttp.StatusUnprocessableEntity)
 		return
 	}
 
 	roleAssignment := new(model2.UserRoleAssignment)
 	userModel := new(model2.User)
+	userState := new(model2.UserState)
 	c.App.Database.QueryRowWithModel(fmt.Sprintf(
 		"SELECT u.* FROM %s AS u "+
 			"INNER JOIN %s AS ra ON u.id = ra.user_id "+
 			"LEFT OUTER JOIN %s AS ra2 ON ra.user_id = ra2.user_id and ra.id < ra2.id "+
-			"WHERE ra2.id IS NULL and u.username = $1 OR u.email = $1",
+			"INNER JOIN %s AS us ON u.id = us.user_id "+
+			"LEFT OUTER JOIN %s AS us2 ON us.user_id = us2.user_id and us.id < us2.id "+
+			"WHERE ra2.id IS NULL and us2.id IS NULL and us.state = $1 and u.username = $2 OR u.email = $2",
 		userModel.TableName(),
 		roleAssignment.TableName(),
 		roleAssignment.TableName(),
-	), userModel, loginRequest.ID).Force()
+		userState.TableName(),
+		userState.TableName(),
+	), userModel, database.Active, loginRequest.ID).Force()
 
 	if err := utils.ComparePassword([]byte(userModel.PasswordDigest), []byte(loginRequest.Password)); err != nil {
 		c.JSONResponse(ctx, model.ResponseError{
@@ -75,5 +79,5 @@ func (c LoginController) Create(ctx *fasthttp.RequestCtx) {
 			UserID:       userModel.ID,
 			Passphrase:   userPassphrase.Passphrase,
 		},
-	}, http.StatusCreated)
+	}, fasthttp.StatusCreated)
 }

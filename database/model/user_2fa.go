@@ -16,20 +16,31 @@
 
 package model
 
-// LoginRequest api login request structure
-type LoginRequest struct {
-	ID       string `json:"id" validate:"required"`
-	Password string `json:"password" validate:"required"`
+import (
+	"forgolang_forum/database"
+	"time"
+)
+
+// User2fa user 2fa type structure
+type User2fa struct {
+	database.DBInterface `json:"-"`
+	ID                   int64              `db:"id" json:"id"`
+	UserID               int64              `db:"user_id" json:"user_id" foreign:"fk_user_2fa_user_id" validate:"required"`
+	Type                 database.TwoFactor `db:"type" json:"type"`
+	InsertedAt           time.Time          `db:"inserted_at" json:"inserted_at"`
 }
 
-// LoginResponse api login success response
-type LoginResponse struct {
-	PassphraseID int64  `json:"passphrase_id"`
-	UserID       int64  `json:"user_id"`
-	Passphrase   string `json:"passphrase"`
+// NewUser2fa generate user 2fa structure
+func NewUser2fa(userID int64) *User2fa {
+	return &User2fa{UserID: userID, Type: database.Email}
 }
 
-// TokenRequest api token request structure
-type TokenRequest struct {
-	Passphrase string `json:"passphrase" validate:"required"`
+// TableName user 2fa database
+func (m User2fa) TableName() string {
+	return "user_2fa"
+}
+
+// ToJSON user 2fa structure to json string
+func (m User2fa) ToJSON() string {
+	return database.ToJSON(m)
 }

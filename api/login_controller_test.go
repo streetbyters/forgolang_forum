@@ -1,6 +1,7 @@
 package api
 
 import (
+	"forgolang_forum/database"
 	model2 "forgolang_forum/database/model"
 	"forgolang_forum/model"
 	"github.com/valyala/fasthttp"
@@ -26,6 +27,11 @@ func (s LoginControllerTest) Test_PostLoginWithValidParams() {
 
 	roleAssignment := model2.NewUserRoleAssignment(user.ID, 1)
 	err = s.API.App.Database.Insert(new(model2.UserRoleAssignment), roleAssignment, "id")
+	s.Nil(err)
+
+	userState := model2.NewUserState(user.ID)
+	userState.State = database.Active
+	err = s.API.App.Database.Insert(new(model2.UserState), userState, "id")
 	s.Nil(err)
 
 	loginRequest := model.LoginRequest{
@@ -79,6 +85,11 @@ func (s LoginControllerTest) Test_Should_401Error_PostLoginWithValidParamsIfPass
 
 	roleAssignment := model2.NewUserRoleAssignment(user.ID, 1)
 	err = s.API.App.Database.Insert(new(model2.UserRoleAssignment), roleAssignment, "id")
+	s.Nil(err)
+
+	userState := model2.NewUserState(user.ID)
+	userState.State = database.Active
+	err = s.API.App.Database.Insert(new(model2.UserState), userState, "id")
 	s.Nil(err)
 
 	loginRequest := model.LoginRequest{

@@ -168,6 +168,7 @@ func main() {
 	}
 
 	go func() {
+		logger.LogInfo("Started application")
 		err := newAPI.Router.Server.ListenAndServe(newAPI.Router.Addr)
 		cmn.FailOnError(logger, err)
 	}()

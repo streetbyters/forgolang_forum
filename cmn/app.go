@@ -23,7 +23,10 @@ import (
 	"forgolang_forum/thirdparty/aws"
 	"forgolang_forum/utils"
 	"github.com/go-redis/redis"
+	"github.com/streadway/amqp"
+	"net/url"
 	"os"
+	"strconv"
 )
 
 // RedisKeys application cache keys
@@ -39,6 +42,8 @@ type App struct {
 	Storage  *aws.S3
 	Email    *aws.SES
 	Cache    *redis.Client
+	Amqp     *amqp.Connection
+	Queue    *Queue
 }
 
 // NewApp building new app
@@ -68,6 +73,16 @@ func NewApp(config *model.Config, logger *utils.Logger) *App {
 
 	ping := app.Cache.Ping()
 	FailOnError(logger, ping.Err())
+	logger.LogInfo("Started redis connection")
+
+	uri := url.URL{
+		Scheme: "amqp",
+		User:   url.UserPassword(app.Config.RabbitMqUser, app.Config.RabbitMqPass),
+		Host:   app.Config.RabbitMqHost + ":" + strconv.Itoa(app.Config.RabbitMqPort),
+	}
+	app.Amqp, err = amqp.Dial(uri.String())
+	FailOnError(logger, err)
+	logger.LogInfo("Started rabbitMQ connection")
 
 	RedisKeys["permissions"] = "permissions"
 	RedisKeys["routes"] = "routes"
@@ -80,6 +95,8 @@ func NewApp(config *model.Config, logger *utils.Logger) *App {
 		"all": "categories",
 		"one": "category",
 	}
+
+	app.Queue = NewQueue(app)
 
 	return app
 }

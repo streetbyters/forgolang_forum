@@ -14,22 +14,23 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package model
+package cmn
 
-// LoginRequest api login request structure
-type LoginRequest struct {
-	ID       string `json:"id" validate:"required"`
-	Password string `json:"password" validate:"required"`
+import (
+	"fmt"
+)
+
+// Email queue
+type QueueEmail struct {
+	Queue *Queue
 }
 
-// LoginResponse api login success response
-type LoginResponse struct {
-	PassphraseID int64  `json:"passphrase_id"`
-	UserID       int64  `json:"user_id"`
-	Passphrase   string `json:"passphrase"`
+// NewEmail generate email queue structure
+func NewEmail(queue *Queue) *QueueEmail {
+	return &QueueEmail{Queue: queue}
 }
 
-// TokenRequest api token request structure
-type TokenRequest struct {
-	Passphrase string `json:"passphrase" validate:"required"`
+// Start email queue
+func (e QueueEmail) Start() {
+	fmt.Println("Start email queue")
 }

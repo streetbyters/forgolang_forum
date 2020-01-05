@@ -16,8 +16,9 @@ require (
 	github.com/rs/zerolog v1.17.2
 	github.com/shopspring/decimal v0.0.0-20191130220710-360f2bc03045
 	github.com/spf13/viper v1.6.1
+	github.com/streadway/amqp v0.0.0-20190827072141-edfb9018d271
 	github.com/stretchr/testify v1.4.0
-	github.com/ulule/limiter/v3 v3.3.3
+	github.com/ulule/limiter/v3 v3.3.3 // indirect
 	github.com/valyala/fasthttp v1.7.1
 	golang.org/x/crypto v0.0.0-20191227163750-53104e6ec876
 	gopkg.in/go-playground/validator.v9 v9.31.0

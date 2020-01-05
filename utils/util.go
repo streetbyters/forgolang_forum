@@ -8,6 +8,7 @@ import (
 	"golang.org/x/crypto/bcrypt"
 	"gopkg.in/guregu/null.v3"
 	html "html/template"
+	"io/ioutil"
 	"reflect"
 	"regexp"
 	"strconv"
@@ -56,6 +57,37 @@ func InArray(val interface{}, array interface{}) (exists bool, index int) {
 	}
 
 	return
+}
+
+// ReadFileToString read a file to string
+func ReadFileToString(filename string) (string, error) {
+	var b []byte
+
+	b, err := ioutil.ReadFile(filename)
+	if err != nil {
+		return "", err
+	}
+
+	return string(b), nil
+}
+
+// ReadFileToTemplate read a file a template string
+func ReadFileToTemplate(filename string, args ...interface{}) string {
+	file, err := ReadFileToString(filename)
+	if err != nil {
+		return ""
+	}
+
+	if len(args) > 0 {
+		file, err = ParseAndExecTemplateFromString(file, args[0])
+	} else {
+		file, err = ParseAndExecTemplateFromString(file, nil)
+	}
+	if err != nil {
+		return ""
+	}
+
+	return file
 }
 
 // ParseAndExecTemplateFromString parses string, creates template and exeutes, returns resulting string
