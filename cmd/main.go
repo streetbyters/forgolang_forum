@@ -25,6 +25,7 @@ import (
 	"forgolang_forum/cmn"
 	"forgolang_forum/database"
 	"forgolang_forum/model"
+	"forgolang_forum/tasks"
 	"forgolang_forum/utils"
 	"github.com/spf13/viper"
 	"io/ioutil"
@@ -46,6 +47,8 @@ var (
 	appPath    string
 	dbPath     string
 	genSecret  bool
+	task       bool
+	name       string
 )
 
 func main() {
@@ -59,6 +62,8 @@ func main() {
 	flag.StringVar(&dbPath, "dbPath", "", "Database path")
 	flag.StringVar(&appPath, "appPath", "", "Application path")
 	flag.BoolVar(&genSecret, "genSecretEnv", false, "Generate secret env file")
+	flag.BoolVar(&task, "task", false, "Run a tasks")
+	flag.StringVar(&name, "name", "", "The name of the task to be run")
 	flag.Parse()
 
 	if appPath == "" {
@@ -135,9 +140,23 @@ func main() {
 	newApp.Database = db
 	newApp.Mode = mode
 
+	_ts := make(map[string]func(app *cmn.App)error)
+	_ts["GenerateRolePermissions"] = tasks.GenerateRolePermissions
+
 	if migrate {
 		db.Reset = reset
 		if err := database.InstallDB(db); err != nil {
+			panic(err)
+		}
+		return
+	}
+
+	if task {
+		_t, ok := _ts[name]
+		if !ok {
+			logger.LogFatal(errors.New("task not found"))
+		}
+		if err := _t(newApp); err != nil {
 			panic(err)
 		}
 		return
