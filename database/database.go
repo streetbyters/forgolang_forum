@@ -309,6 +309,7 @@ func newMigrations(db *Database) error {
 					_, err = tx.Exec(f.Data)
 					if err != nil {
 						tx.Rollback()
+						db.Error = err
 						break
 					}
 
@@ -322,6 +323,7 @@ func newMigrations(db *Database) error {
 				_, err = tx.Exec(f.Data)
 				if err != nil {
 					tx.Rollback()
+					db.Error = err
 					break
 				}
 
