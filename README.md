@@ -50,8 +50,37 @@ go run ./cmd -mode test
 
 ## Tasks
 If you have added a new API endpoint.
-```go
+```shell script
 go run ./cmd -mode dev -task -name GenerateRolePermissions
+```
+#### Add Task
+Create task file on ***tasks*** directory. On the bottom you can also see the sample task function.
+```go
+package tasks
+
+import "forgolang_forum/cmn"
+
+// ExampleTask for forgolang_forum
+func ExampleTask(app *cmn.App, args ...interface{}) {
+    app.Logger.LogInfo("Example Task")
+}
+```
+
+After creating the task file, define the task to the task section in the ***cmd/main.go*** file.
+```go
+package main
+
+func main() {
+    ...
+    // Tasks
+    _ts["ExampleTask"] = tasks.ExampleTask
+    // Tasks
+    ...
+}
+```
+Finally, call the task from the command line.
+```shell script
+go run ./cmd -mode dev -task -name ExampleTask
 ```
 
 ## Contribution
