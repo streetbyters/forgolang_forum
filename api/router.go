@@ -39,6 +39,7 @@ type Router struct {
 	Server  *fasthttp.Server
 	Addr    string
 	Handler *phi.Mux
+	Routes  map[string]map[string][]string
 }
 
 var (
@@ -55,6 +56,7 @@ func NewRouter(api *API) *Router {
 	router := &Router{
 		API: api,
 	}
+	router.Routes = make(map[string]map[string][]string)
 
 	hostname, err := os.Hostname()
 	if hostname == "" || err != nil {
@@ -80,18 +82,57 @@ func NewRouter(api *API) *Router {
 	r.NotFound(router.notFound)
 	r.MethodNotAllowed(router.methodNotAllowed)
 
-	r.Get("/", HomeController{API: api}.Index)
+	hC := HomeController{API: api}
+	r.Get("/", hC.Index)
 
 	r.Route("/api/v1", func(r phi.Router) {
 		r.Route("/user", func(r phi.Router) {
-			r.Post("/sign_in", LoginController{API: api}.Create)
-			r.Post("/token", TokenController{API: api}.Create)
+			lC := LoginController{API: api}
+			r.Post("/sign_in", lC.Create)
+
+			tC := TokenController{API: api}
+			r.Post("/token", tC.Create)
 		})
 
 		r.Group(func(r phi.Router) {
 			r.Use(api.JWTAuth.Verify)
 
-			r.Post("/upload", UploadController{API: api}.Create)
+			uC := UploadController{API: api}
+
+			r.Post("/upload", uC.Create)
+			router.Routes["UploadController"] = make(map[string][]string)
+			router.Routes["UploadController"]["superadmin"] = []string{
+				"Create",
+			}
+
+			// Category routes
+			r.Group(func(r phi.Router) {
+				cC := CategoryController{API: api}
+				r.Get("/category", cC.Index)
+				r.With(CategoryPolicy{API: api}.Create).Post("/category", cC.Create)
+				r.Route("/category/{categoryID}", func(r phi.Router) {
+					r.Get("/", cC.Show)
+					r.With(CategoryPolicy{API: api}.Update).Put("/", cC.Update)
+					r.With(CategoryPolicy{API: api}.Delete).Delete("/", cC.Delete)
+				})
+				router.Routes["CategoryController"] = make(map[string][]string)
+				router.Routes["CategoryController"]["superadmin"] = []string{
+					"Index",
+					"Create",
+					"Show",
+					"Update",
+					"Delete",
+				}
+				router.Routes["CategoryController"]["moderator"] = []string{
+					"Index",
+					"Show",
+					"Update",
+				}
+				router.Routes["CategoryController"]["user"] = []string{
+					"Index",
+					"Show",
+				}
+			})
 		})
 	})
 
@@ -101,7 +142,7 @@ func NewRouter(api *API) *Router {
 		MaxRequestBodySize: 1 * 1024 * 1024 * 1024,
 		Logger:             api.App.Logger,
 	}
-	router.Addr = ":" + strconv.Itoa(api.App.Config.Port)
+	router.Addr = fmt.Sprintf("%s:%d", api.App.Config.Host, api.App.Config.Port)
 	router.Handler = r
 
 	return router

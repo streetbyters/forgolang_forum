@@ -17,6 +17,7 @@
 package api
 
 import (
+	"fmt"
 	"forgolang_forum/database"
 	model2 "forgolang_forum/database/model"
 	"forgolang_forum/model"
@@ -44,9 +45,17 @@ func (c LoginController) Create(ctx *fasthttp.RequestCtx) {
 		return
 	}
 
+	roleAssignment := new(model2.UserRoleAssignment)
 	userModel := new(model2.User)
-	c.App.Database.QueryRowWithModel("SELECT * FROM "+userModel.TableName()+" AS u "+
-		"WHERE u.username = $1 OR u.email = $1", userModel, loginRequest.ID).Force()
+	c.App.Database.QueryRowWithModel(fmt.Sprintf(
+		"SELECT u.* FROM %s AS u "+
+			"INNER JOIN %s AS ra ON u.id = ra.user_id "+
+			"LEFT OUTER JOIN %s AS ra2 ON ra.user_id = ra2.user_id and ra.id < ra2.id "+
+			"WHERE ra2.id IS NULL and u.username = $1 OR u.email = $1",
+			userModel.TableName(),
+			roleAssignment.TableName(),
+			roleAssignment.TableName(),
+		), userModel, loginRequest.ID).Force()
 
 	if err := utils.ComparePassword([]byte(userModel.PasswordDigest), []byte(loginRequest.Password)); err != nil {
 		c.JSONResponse(ctx, model.ResponseError{

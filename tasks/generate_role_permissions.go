@@ -18,7 +18,6 @@ package tasks
 
 import (
 	"fmt"
-	"forgolang_forum/api"
 	"forgolang_forum/cmn"
 	"forgolang_forum/database/model"
 	"forgolang_forum/utils"
@@ -26,7 +25,7 @@ import (
 )
 
 // GenerateRolePermissions generate role permissions for api controller and methods
-func GenerateRolePermissions(app *cmn.App, api *api.API) error {
+func GenerateRolePermissions(app *cmn.App, apiRoutes map[string]map[string][]string) error {
 	role := model.NewRole()
 	var roles []model.Role
 	app.Database.QueryWithModel(fmt.Sprintf("SELECT * FROM %s", role.TableName()),
@@ -46,7 +45,7 @@ func GenerateRolePermissions(app *cmn.App, api *api.API) error {
 		names = append(names, r.Name)
 	}
 
-	for k, r := range api.Router.Routes {
+	for k, r := range apiRoutes {
 		if exists, _ := utils.InArray(k, names); !exists {
 			_r := model.NewRoute()
 			_r.Name = k

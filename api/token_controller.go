@@ -17,6 +17,7 @@
 package api
 
 import (
+	"fmt"
 	"forgolang_forum/database"
 	model2 "forgolang_forum/database/model"
 	"forgolang_forum/model"
@@ -66,7 +67,26 @@ func (c TokenController) Create(ctx *fasthttp.RequestCtx) {
 		return
 	}
 
-	jwt, _ := c.API.JWTAuth.Generate(user.ID)
+	role := new(model2.Role)
+	roleAssignment := new(model2.UserRoleAssignment)
+	err := c.App.Database.DB.QueryRowx(
+		fmt.Sprintf("SELECT r.code, ra.role_id FROM %s AS ra "+
+			"LEFT OUTER JOIN %s AS ra2 ON ra.user_id = ra2.user_id and ra.id < ra2.id "+
+			"INNER JOIN %s AS r ON ra.role_id = r.id "+
+			"WHERE ra2.id IS NULL AND ra.user_id = $1",
+			roleAssignment.TableName(),
+			roleAssignment.TableName(),
+			role.TableName()),
+		user.ID,
+	).Scan(&role.Code, &roleAssignment.RoleID)
+	if err != nil {
+		c.JSONResponse(ctx, model.ResponseError{
+			Detail: fasthttp.StatusMessage(fasthttp.StatusNotFound),
+		}, fasthttp.StatusNotFound)
+		return
+	}
+
+	jwt, _ := c.API.JWTAuth.Generate(user.ID, roleAssignment.RoleID, role.Code)
 
 	c.JSONResponse(ctx, model.ResponseSuccessOne{
 		Data: model.ResponseToken{

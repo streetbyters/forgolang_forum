@@ -25,6 +25,10 @@ func (s TokenControllerTest) Test_PostTokenWithValidParams() {
 	err := s.API.App.Database.Insert(user, userModel, "id", "inserted_at")
 	s.Nil(err)
 
+	roleAssignment := model2.NewUserRoleAssignment(userModel.ID, 1)
+	err = s.API.App.Database.Insert(new(model2.UserRoleAssignment), roleAssignment, "id")
+	s.Nil(err)
+
 	userPassphrase := new(model2.UserPassphrase)
 	userPassphraseModel := model2.NewUserPassphrase(userModel.ID)
 	userPassphraseModel.InsertedAt = time.Now().UTC()
@@ -53,6 +57,10 @@ func (s TokenControllerTest) Test_Shoul_404Error_PostTokenWithValidParamsIfNotEx
 	err := s.API.App.Database.Insert(user, userModel, "id")
 	s.Nil(err)
 
+	roleAssignment := model2.NewUserRoleAssignment(userModel.ID, 1)
+	err = s.API.App.Database.Insert(new(model2.UserRoleAssignment), roleAssignment, "id")
+	s.Nil(err)
+
 	tokenRequest := model.TokenRequest{Passphrase: "userPassphrase.Passphrase"}
 
 	resp := s.JSON(Post, "/api/v1/user/token", tokenRequest)
@@ -71,6 +79,10 @@ func (s TokenControllerTest) Test_Should_404Error_PostTokenWithValidParamsIfUser
 	user := new(model2.User)
 
 	err := s.API.App.Database.Insert(user, userModel, "id")
+	s.Nil(err)
+
+	roleAssignment := model2.NewUserRoleAssignment(userModel.ID, 1)
+	err = s.API.App.Database.Insert(new(model2.UserRoleAssignment), roleAssignment, "id")
 	s.Nil(err)
 
 	userPassphrase := new(model2.UserPassphrase)
@@ -97,6 +109,10 @@ func (s TokenControllerTest) Test_Should_404Error_PostTokenWithValidParamsIfPass
 	err := s.API.App.Database.Insert(user, userModel, "id")
 	s.Nil(err)
 
+	roleAssignment := model2.NewUserRoleAssignment(userModel.ID, 1)
+	err = s.API.App.Database.Insert(new(model2.UserRoleAssignment), roleAssignment, "id")
+	s.Nil(err)
+
 	userPassphrase := new(model2.UserPassphrase)
 	userPassphraseModel := model2.NewUserPassphrase(userModel.ID)
 	userPassphraseModel.InsertedAt = time.Now().UTC().AddDate(0, -4, 0)
@@ -110,6 +126,31 @@ func (s TokenControllerTest) Test_Should_404Error_PostTokenWithValidParamsIfPass
 	s.Equal(resp.Status, fasthttp.StatusNotFound)
 	s.API.App.Logger.LogInfo("Should be 404 error post token with valid params " +
 		"if passphrase expire")
+}
+
+func (s TokenControllerTest) Test_Should_404Err_PostTokenWithValidParamsIfUserRoleNotExists() {
+	userModel := model2.NewUser("123456")
+	userModel.Username = "akdilsiz5"
+	userModel.Email = "akdilsiz5@tecpor.com"
+	user := new(model2.User)
+
+	err := s.API.App.Database.Insert(user, userModel, "id", "inserted_at")
+	s.Nil(err)
+
+	userPassphrase := new(model2.UserPassphrase)
+	userPassphraseModel := model2.NewUserPassphrase(userModel.ID)
+	userPassphraseModel.InsertedAt = time.Now().UTC()
+	err = s.API.App.Database.Insert(userPassphrase, userPassphraseModel, "passphrase")
+	s.Nil(err)
+
+	tokenRequest := model.TokenRequest{Passphrase: userPassphrase.Passphrase}
+
+	resp := s.JSON(Post, "/api/v1/user/token", tokenRequest)
+
+	s.Equal(resp.Status, fasthttp.StatusNotFound)
+
+	s.API.App.Logger.LogInfo("Should be 404 error post token with valid params " +
+		"if user role assignment not exists")
 }
 
 func Test_TokenController(t *testing.T) {

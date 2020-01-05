@@ -141,7 +141,7 @@ func main() {
 	newApp.Database = db
 	newApp.Mode = mode
 
-	_ts := make(map[string]func(app *cmn.App, api *api.API)error)
+	_ts := make(map[string]func(app *cmn.App, apiRoutes map[string]map[string][]string)error)
 	_ts["GenerateRolePermissions"] = tasks.GenerateRolePermissions
 
 	if migrate {
@@ -159,7 +159,7 @@ func main() {
 		if !ok {
 			logger.LogFatal(errors.New("task not found"))
 		}
-		if err := _t(newApp, newAPI); err != nil {
+		if err := _t(newApp, newAPI.Router.Routes); err != nil {
 			panic(err)
 		}
 		return
