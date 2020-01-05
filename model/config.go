@@ -21,6 +21,7 @@ type Config struct {
 	EnvFile      string `json:"env_file"`
 	Path         string `json:"path"`
 	Mode         MODE   `json:"mode"`
+	Host         string `json:"host"`
 	Port         int    `json:"port"`
 	SecretKey    string `json:"secret_key"`
 	DB           DB     `json:"db"`

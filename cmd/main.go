@@ -104,6 +104,7 @@ func main() {
 	config := &model.Config{
 		EnvFile:      configFile,
 		Path:         appPath,
+		Host:         viper.GetString("HOST"),
 		Port:         viper.GetInt("PORT"),
 		SecretKey:    viper.GetString("SECRET_KEY"),
 		DB:           model.DB(viper.GetString("DB")),
@@ -140,7 +141,7 @@ func main() {
 	newApp.Database = db
 	newApp.Mode = mode
 
-	_ts := make(map[string]func(app *cmn.App)error)
+	_ts := make(map[string]func(app *cmn.App, api *api.API)error)
 	_ts["GenerateRolePermissions"] = tasks.GenerateRolePermissions
 
 	if migrate {
@@ -151,18 +152,19 @@ func main() {
 		return
 	}
 
+	newAPI := api.NewAPI(newApp)
+
 	if task {
 		_t, ok := _ts[name]
 		if !ok {
 			logger.LogFatal(errors.New("task not found"))
 		}
-		if err := _t(newApp); err != nil {
+		if err := _t(newApp, newAPI); err != nil {
 			panic(err)
 		}
 		return
 	}
 
-	newAPI := api.NewAPI(newApp)
 	go func() {
 		err := newAPI.Router.Server.ListenAndServe(newAPI.Router.Addr)
 		cmn.FailOnError(logger, err)

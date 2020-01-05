@@ -17,12 +17,62 @@
 package tasks
 
 import (
+	"fmt"
+	"forgolang_forum/api"
 	"forgolang_forum/cmn"
+	"forgolang_forum/database/model"
+	"forgolang_forum/utils"
+	"strings"
 )
 
 // GenerateRolePermissions generate role permissions for api controller and methods
-func GenerateRolePermissions(app *cmn.App) error {
+func GenerateRolePermissions(app *cmn.App, api *api.API) error {
+	role := model.NewRole()
+	var roles []model.Role
+	app.Database.QueryWithModel(fmt.Sprintf("SELECT * FROM %s", role.TableName()),
+		&roles)
+	rolesMap := make(map[string]int64)
+	for _, r := range roles {
+		rolesMap[r.Code] = r.ID
+	}
 
+	route := model.NewRoute()
+	var routes []model.Route
+	app.Database.QueryWithModel(fmt.Sprintf("SELECT * FROM %s", route.TableName()),
+		&routes)
 
+	var names []string
+	for _, r := range routes {
+		names = append(names, r.Name)
+	}
+
+	for k, r := range api.Router.Routes {
+		if exists, _ := utils.InArray(k, names); !exists {
+			_r := model.NewRoute()
+			_r.Name = k
+			err := app.Database.Insert(model.NewRoute(), _r, "id")
+			if err != nil {
+				panic(err)
+			}
+			app.Cache.Set(strings.Join([]string{cmn.RedisKeys["routes"].(string), _r.Name}, ":"),
+				_r.ToJSON(), 0)
+			app.Logger.LogInfo(fmt.Sprintf("Generate %s route", _r.Name))
+			for k2, r2 := range r {
+				for _, r3 := range r2 {
+					rp := model.NewRolePermission(rolesMap[k2])
+					rp.Controller = k
+					rp.Method = r3
+					err := app.Database.Insert(model.NewRolePermission(0), rp, "id")
+					if err != nil {
+						panic(err)
+					}
+					app.Logger.LogInfo(fmt.Sprintf("Generate %s: %s/%s permission",
+						k2,
+						rp.Controller,
+						rp.Method))
+				}
+			}
+		}
+	}
 	return nil
 }

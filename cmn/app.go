@@ -17,12 +17,17 @@
 package cmn
 
 import (
+	"fmt"
 	"forgolang_forum/database"
 	"forgolang_forum/model"
 	"forgolang_forum/thirdparty/aws"
 	"forgolang_forum/utils"
+	"github.com/go-redis/redis"
 	"os"
 )
+
+// RedisKeys application cache keys
+var RedisKeys = make(map[string]interface{})
 
 // App structure
 type App struct {
@@ -33,6 +38,7 @@ type App struct {
 	Mode     model.MODE
 	Storage  *aws.S3
 	Email    *aws.SES
+	Cache    *redis.Client
 }
 
 // NewApp building new app
@@ -49,6 +55,32 @@ func NewApp(config *model.Config, logger *utils.Logger) *App {
 	app.Email, err = aws.NewSES(awsConfig)
 	FailOnError(logger, err)
 
+	app.Cache = redis.NewClient(&redis.Options{
+		Network:     "tcp",
+		Addr:        fmt.Sprintf("%s:%d", config.RedisHost, config.RedisPort),
+		Password:    config.RedisPass,
+		DB:          config.RedisDB,
+		MaxRetries:  3,
+		PoolSize:    10,
+		PoolTimeout: 15000,
+		IdleTimeout: 15000,
+	})
+
+	ping := app.Cache.Ping()
+	FailOnError(logger, ping.Err())
+
+	RedisKeys["permissions"] = "permissions"
+	RedisKeys["routes"] = "routes"
+	RedisKeys["user"] = map[string]string{
+		"one":         "user",
+		"permissions": "user:permissions",
+		"permission":  "user:permission",
+	}
+	RedisKeys["category"] = map[string]string{
+		"all": "categories",
+		"one": "category",
+	}
+
 	return app
 }
 
@@ -58,4 +90,13 @@ func FailOnError(logger *utils.Logger, err error) {
 		logger.Panic().Err(err)
 		panic(err)
 	}
+}
+
+// GetRedisKeys get a key with given keys
+func GetRedisKey(keys ...string) string {
+	if len(keys) > 1 {
+		k := RedisKeys[keys[0]]
+		return k.(map[string]string)[keys[1]]
+	}
+	return RedisKeys[keys[0]].(string)
 }
