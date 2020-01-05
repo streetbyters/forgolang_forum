@@ -45,4 +45,3 @@ func (m RolePermission) TableName() string {
 func (m RolePermission) ToJSON() string {
 	return database.ToJSON(m)
 }
-

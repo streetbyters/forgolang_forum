@@ -35,7 +35,7 @@ func NewAuthorization(api *API) *Authorization {
 	return &Authorization{API: api}
 }
 
-// Gen generate and put user permissions
+// Apply module authorization
 func (m *Authorization) Apply(next phi.HandlerFunc, controller, method string, cb func() bool) phi.HandlerFunc {
 	return func(ctx *fasthttp.RequestCtx) {
 		if !m.gen(controller, method) || !cb() {

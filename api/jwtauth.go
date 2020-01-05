@@ -48,10 +48,10 @@ func (a JWTAuth) Generate(args ...interface{}) (string, error) {
 	a.Expire = time.Now().UTC().Unix() + int64(time.Second*25)
 
 	claims := jwt.MapClaims{
-		"id":  args[0].(int64),
+		"id":      args[0].(int64),
 		"role_id": args[1].(int64),
-		"role": args[2].(string),
-		"exp": a.Expire,
+		"role":    args[2].(string),
+		"exp":     a.Expire,
 	}
 
 	token := jwt.NewWithClaims(a.Method, claims)
