@@ -214,7 +214,6 @@ func (s CategoryControllerTest) Test_UpdateCategoryWithGivenIdentifierAndValidPa
 	s.Equal(cachedCategory.InsertedAt.Format(time.RFC3339Nano), data["inserted_at"])
 	s.Equal(cachedCategory.UpdatedAt.Format(time.RFC3339Nano), data["updated_at"])
 
-
 	defaultLogger.LogInfo("Update a category with given identifier and valid params")
 }
 

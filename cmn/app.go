@@ -92,7 +92,7 @@ func FailOnError(logger *utils.Logger, err error) {
 	}
 }
 
-// GetRedisKeys get a key with given keys
+// GetRedisKey get a key with given keys
 func GetRedisKey(keys ...string) string {
 	if len(keys) > 1 {
 		k := RedisKeys[keys[0]]

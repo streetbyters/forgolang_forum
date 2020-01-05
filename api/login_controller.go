@@ -52,10 +52,10 @@ func (c LoginController) Create(ctx *fasthttp.RequestCtx) {
 			"INNER JOIN %s AS ra ON u.id = ra.user_id "+
 			"LEFT OUTER JOIN %s AS ra2 ON ra.user_id = ra2.user_id and ra.id < ra2.id "+
 			"WHERE ra2.id IS NULL and u.username = $1 OR u.email = $1",
-			userModel.TableName(),
-			roleAssignment.TableName(),
-			roleAssignment.TableName(),
-		), userModel, loginRequest.ID).Force()
+		userModel.TableName(),
+		roleAssignment.TableName(),
+		roleAssignment.TableName(),
+	), userModel, loginRequest.ID).Force()
 
 	if err := utils.ComparePassword([]byte(userModel.PasswordDigest), []byte(loginRequest.Password)); err != nil {
 		c.JSONResponse(ctx, model.ResponseError{

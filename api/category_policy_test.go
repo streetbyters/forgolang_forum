@@ -53,7 +53,6 @@ func (s CategoryPolicyTest) Test_Should_UpdateCategoryWithValidParamsAndModerato
 		"and moderator role")
 }
 
-
 func (s CategoryPolicyTest) Test_Should_403Error_UpdateCategoryWithValidParamsAndUserRole() {
 	UserAuth(s.Suite, "user")
 

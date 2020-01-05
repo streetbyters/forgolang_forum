@@ -16,6 +16,15 @@
 
 Forgolang.com's open-source forum system
 
+## Roadmap
+ - [x] Core system
+ - [x] Authorization system integration
+ - [ ] All modules integrations (category, posts, chat)
+ - [ ] Notification system integration
+ - [ ] CI/CD Tools integration
+
+That's all for now. :)
+
 ## Requirements
  - Go > 1.11
  - PostgreSQL
