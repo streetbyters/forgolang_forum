@@ -24,6 +24,10 @@ func (s LoginControllerTest) Test_PostLoginWithValidParams() {
 	err := s.API.App.Database.Insert(userModel, user, "id")
 	s.Nil(err)
 
+	roleAssignment := model2.NewUserRoleAssignment(user.ID, 1)
+	err = s.API.App.Database.Insert(new(model2.UserRoleAssignment), roleAssignment, "id")
+	s.Nil(err)
+
 	loginRequest := model.LoginRequest{
 		ID:       "akdilsiz-login",
 		Password: "123456",
@@ -71,6 +75,10 @@ func (s LoginControllerTest) Test_Should_401Error_PostLoginWithValidParamsIfPass
 	userModel := new(model2.User)
 
 	err := s.API.App.Database.Insert(userModel, user, "id")
+	s.Nil(err)
+
+	roleAssignment := model2.NewUserRoleAssignment(user.ID, 1)
+	err = s.API.App.Database.Insert(new(model2.UserRoleAssignment), roleAssignment, "id")
 	s.Nil(err)
 
 	loginRequest := model.LoginRequest{

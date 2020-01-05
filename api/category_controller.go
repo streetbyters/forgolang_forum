@@ -17,11 +17,14 @@
 package api
 
 import (
+	"encoding/json"
 	"fmt"
+	"forgolang_forum/cmn"
 	"forgolang_forum/database"
 	"forgolang_forum/database/model"
 	model2 "forgolang_forum/model"
 	"github.com/fate-lovely/phi"
+	"github.com/gosimple/slug"
 	"github.com/valyala/fasthttp"
 )
 
@@ -50,18 +53,35 @@ func (c CategoryController) Index(ctx *fasthttp.RequestCtx) {
 
 	c.JSONResponse(ctx, model2.ResponseSuccess{
 		Data:       categories,
-		TotalCount: 0,
+		TotalCount: count,
 	}, fasthttp.StatusOK)
 }
 
 // Show a category with given identifier
 func (c CategoryController) Show(ctx *fasthttp.RequestCtx) {
 	var category model.Category
+
+	var cs string
+	if err := c.App.Cache.Get(fmt.Sprintf("%s:%s",
+		cmn.GetRedisKey("category", "one"),
+		phi.URLParam(ctx, "categoryID"))).Scan(&cs); err == nil {
+		json.Unmarshal([]byte(cs), &category)
+
+		c.JSONResponse(ctx, model2.ResponseSuccessOne{
+			Data: category,
+		}, fasthttp.StatusOK)
+		return
+	}
+
 	c.App.Database.QueryRowWithModel(fmt.Sprintf(`
 			SELECT c.* FROM %s AS c WHERE id = $1 
 		`, c.Model.TableName()),
 		&category,
 		phi.URLParam(ctx, "categoryID")).Force()
+
+	c.App.Cache.Set(fmt.Sprintf("%s:%d",
+		cmn.GetRedisKey("category", "one"),
+		category.ID), category.ToJSON(), 0)
 
 	c.JSONResponse(ctx, model2.ResponseSuccessOne{
 		Data: category,
@@ -70,7 +90,7 @@ func (c CategoryController) Show(ctx *fasthttp.RequestCtx) {
 
 // Create category with valid params
 func (c CategoryController) Create(ctx *fasthttp.RequestCtx) {
-	var category model.Category
+	category := new(model.Category)
 	c.JSONBody(ctx, &category)
 
 	if errs, err := database.ValidateStruct(category); err != nil {
@@ -78,15 +98,23 @@ func (c CategoryController) Create(ctx *fasthttp.RequestCtx) {
 			Errors: errs,
 			Detail: fasthttp.StatusMessage(fasthttp.StatusUnprocessableEntity),
 		}, fasthttp.StatusUnprocessableEntity)
+		return
 	}
 
-	err := c.App.Database.Insert(c.Model, category, "id", "inserted_at", "updated_at")
+	category.Slug = slug.Make(category.Title)
+
+	err := c.App.Database.Insert(new(model.Category), category, "id", "inserted_at", "updated_at")
 	if errs, err := database.ValidateConstraint(err, category); err != nil {
 		c.JSONResponse(ctx, model2.ResponseError{
 			Errors: errs,
 			Detail: fasthttp.StatusMessage(fasthttp.StatusUnprocessableEntity),
 		}, fasthttp.StatusUnprocessableEntity)
+		return
 	}
+
+	c.App.Cache.Set(fmt.Sprintf("%s:%d",
+		cmn.GetRedisKey("category", "one"),
+		category.ID), category.ToJSON(), 0).Err()
 
 	c.JSONResponse(ctx, model2.ResponseSuccessOne{
 		Data: category,
@@ -95,42 +123,55 @@ func (c CategoryController) Create(ctx *fasthttp.RequestCtx) {
 
 // Update category with given identifier and valid params
 func (c CategoryController) Update(ctx *fasthttp.RequestCtx) {
-	var category model.Category
+	category := new(model.Category)
 	c.App.Database.QueryRowWithModel(fmt.Sprintf(`
-			SELECT c.* FROM %s AS c WHERE id = $1
+			SELECT c.* FROM %s AS c WHERE c.id = $1
 		`, c.Model.TableName()),
-		&category,
+		category,
 		phi.URLParam(ctx, "categoryID")).Force()
 
 	var categoryRequest model.Category
 	c.JSONBody(ctx, &categoryRequest)
 
-	if errs, err := database.ValidateStruct(category); err != nil {
+	if errs, err := database.ValidateStruct(categoryRequest); err != nil {
 		c.JSONResponse(ctx, model2.ResponseError{
 			Errors: errs,
 			Detail: fasthttp.StatusMessage(fasthttp.StatusUnprocessableEntity),
 		}, fasthttp.StatusUnprocessableEntity)
+		return
 	}
 
-	err := c.App.Database.Update(category, categoryRequest, nil, "id", "inserted_at", "updated_at")
+	categoryRequest.Slug = slug.Make(categoryRequest.Title)
+	categoryRequest.InsertedAt = category.InsertedAt
+
+	err := c.App.Database.Update(category, &categoryRequest, nil,
+		"id", "inserted_at", "updated_at")
 	if errs, err := database.ValidateConstraint(err, category); err != nil {
 		c.JSONResponse(ctx, model2.ResponseError{
 			Errors: errs,
 			Detail: fasthttp.StatusMessage(fasthttp.StatusUnprocessableEntity),
 		}, fasthttp.StatusUnprocessableEntity)
+		return
 	}
 
+	c.App.Cache.Set(fmt.Sprintf("%s:%d",
+		cmn.GetRedisKey("category", "one"),
+		category.ID), category.ToJSON(), 0)
+
 	c.JSONResponse(ctx, model2.ResponseSuccessOne{
-		Data: categoryRequest,
-	}, fasthttp.StatusCreated)
+		Data: category,
+	}, fasthttp.StatusOK)
 }
 
 // Delete category with given identifier
 func (c CategoryController) Delete(ctx *fasthttp.RequestCtx) {
-	c.App.Database.Delete(fmt.Sprintf("SELECT * FROM %s",
-		c.Model.TableName()),
+	c.App.Database.Delete(c.Model.TableName(),
 		"id = $1",
 		phi.URLParam(ctx, "categoryID")).Force()
+
+	c.App.Cache.Del(fmt.Sprintf("%s:%s",
+		cmn.GetRedisKey("category", "one"),
+		phi.URLParam(ctx, "categoryID")))
 
 	c.JSONResponse(ctx, model2.ResponseSuccessOne{
 		Data: nil,

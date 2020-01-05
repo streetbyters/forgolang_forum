@@ -31,11 +31,14 @@ import (
 
 // API rest api structure
 type API struct {
-	App     *cmn.App
-	Router  *Router
-	JWTAuth *JWTAuth
-	Auth    struct {
-		ID int64
+	App           *cmn.App
+	Router        *Router
+	JWTAuth       *JWTAuth
+	Authorization *Authorization
+	Auth          struct {
+		ID     int64
+		RoleID int64
+		Role   string
 	}
 }
 
@@ -43,6 +46,7 @@ type API struct {
 func NewAPI(app *cmn.App) *API {
 	api := &API{App: app}
 	api.JWTAuth = NewJWTAuth(api)
+	api.Authorization = NewAuthorization(api)
 	api.Router = NewRouter(api)
 
 	return api

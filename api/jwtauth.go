@@ -49,6 +49,8 @@ func (a JWTAuth) Generate(args ...interface{}) (string, error) {
 
 	claims := jwt.MapClaims{
 		"id":  args[0].(int64),
+		"role_id": args[1].(int64),
+		"role": args[2].(string),
 		"exp": a.Expire,
 	}
 
@@ -114,6 +116,8 @@ func (a JWTAuth) Verify(next phi.HandlerFunc) phi.HandlerFunc {
 			return
 		default:
 			a.API.Auth.ID = int64(claims["id"].(float64))
+			a.API.Auth.RoleID = int64(claims["role_id"].(float64))
+			a.API.Auth.Role = claims["role"].(string)
 
 			next(ctx)
 			break

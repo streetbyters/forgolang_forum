@@ -25,6 +25,7 @@ import (
 	"forgolang_forum/database"
 	model2 "forgolang_forum/database/model"
 	"forgolang_forum/model"
+	"forgolang_forum/tasks"
 	"forgolang_forum/utils"
 	"github.com/spf13/viper"
 	"github.com/stretchr/testify/suite"
@@ -38,6 +39,7 @@ import (
 	"path/filepath"
 	"reflect"
 	"strings"
+	"sync/atomic"
 	"testing"
 )
 
@@ -125,6 +127,7 @@ func NewSuite() *Suite {
 	config := &model.Config{
 		EnvFile:      configFile,
 		Path:         appPath,
+		Host:         viper.GetString("HOST"),
 		Port:         viper.GetInt("PORT"),
 		SecretKey:    viper.GetString("SECRET_KEY"),
 		DB:           model.DB(viper.GetString("DB")),
@@ -155,6 +158,12 @@ func NewSuite() *Suite {
 	newApp.Mode = model.Test
 	newAPI := NewAPI(newApp)
 
+	newApp.Cache.FlushDB()
+	err = tasks.GenerateRolePermissions(newApp, newAPI.Router.Routes)
+	if err != nil {
+		panic(err)
+	}
+
 	return &Suite{API: newAPI}
 }
 
@@ -184,13 +193,20 @@ func (s *Suite) File(method Method, path string, arg interface{}, fileParam ...s
 func SetupSuite(s *Suite) {}
 
 // TearDownSuite after suite processes
-func TearDownSuite(s *Suite) {}
+func TearDownSuite(s *Suite) {
+	roleAssignment := new(model2.UserRoleAssignment)
+	s.API.App.Database.QueryRow(fmt.Sprintf("DELETE FROM %s WHERE id > 0",
+		roleAssignment.TableName()))
+}
+
+var counter int64
 
 // UserAuth generate test request auth provides
-func UserAuth(s *Suite) {
+func UserAuth(s *Suite, typ ...string) {
+	atomic.AddInt64(&counter, 1)
 	user := model2.NewUser("1234")
-	user.Username = "testUser"
-	user.Email = "testUser@tecpor.com"
+	user.Username = fmt.Sprintf("testUser%d", atomic.LoadInt64(&counter))
+	user.Email = fmt.Sprintf("testUser%d@tecpor.com", atomic.LoadInt64(&counter))
 	user.IsActive = true
 	userModel := new(model2.User)
 
@@ -200,7 +216,27 @@ func UserAuth(s *Suite) {
 		panic(err)
 	}
 
-	token, _ := s.API.JWTAuth.Generate(user.ID)
+	var _s string
+	roleAssignment := model2.NewUserRoleAssignment(user.ID, 0)
+	if len(typ) > 0 {
+		switch typ[0] {
+		case "moderator":
+			_s = "moderator"
+			roleAssignment.RoleID = 2
+			break
+		case "user":
+			_s = "user"
+			roleAssignment.RoleID = 3
+			break
+		}
+	} else {
+		_s = "superadmin"
+		roleAssignment.RoleID = 1
+	}
+
+	err = s.API.App.Database.Insert(new(model2.UserRoleAssignment), roleAssignment, "id")
+
+	token, _ := s.API.JWTAuth.Generate(user.ID, roleAssignment.RoleID, _s)
 	s.Auth.Token = token
 	s.Auth.User = user
 }
