@@ -39,6 +39,12 @@ go run ./cmd -mode test -migrate -reset
 go run ./cmd -mode test
 ```
 
+## Tasks
+If you have added a new API endpoint.
+```go
+go run ./cmd -mode dev -task -name GenerateRolePermissions
+```
+
 ## Contribution
 I would like to accept any contributions to make Forgolang.com better and feature rich.\
 [See detail](docs/contributions.md)
