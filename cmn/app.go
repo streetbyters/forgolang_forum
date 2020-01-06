@@ -21,6 +21,7 @@ import (
 	"forgolang_forum/database"
 	"forgolang_forum/model"
 	"forgolang_forum/thirdparty/aws"
+	"forgolang_forum/thirdparty/github"
 	"forgolang_forum/utils"
 	"github.com/go-redis/redis"
 	"github.com/streadway/amqp"
@@ -44,6 +45,7 @@ type App struct {
 	Cache    *redis.Client
 	Amqp     *amqp.Connection
 	Queue    *Queue
+	Github   *github.Github
 }
 
 // NewApp building new app
@@ -97,6 +99,7 @@ func NewApp(config *model.Config, logger *utils.Logger) *App {
 	}
 
 	app.Queue = NewQueue(app)
+	app.Github = github.NewGithub(config)
 
 	return app
 }

@@ -125,27 +125,30 @@ func NewSuite() *Suite {
 	}
 
 	config := &model.Config{
-		EnvFile:      configFile,
-		Path:         appPath,
-		Host:         viper.GetString("HOST"),
-		Port:         viper.GetInt("PORT"),
-		SecretKey:    viper.GetString("SECRET_KEY"),
-		DB:           model.DB(viper.GetString("DB")),
-		DBPath:       dbPath,
-		DBName:       viper.GetString("DB_NAME"),
-		DBHost:       viper.GetString("DB_HOST"),
-		DBPort:       viper.GetInt("DB_PORT"),
-		DBUser:       viper.GetString("DB_USER"),
-		DBPass:       viper.GetString("DB_PASS"),
-		DBSsl:        viper.GetString("DB_SSL"),
-		RabbitMqHost: viper.GetString("RABBITMQ_HOST"),
-		RabbitMqPort: viper.GetInt("RABBITMQ_PORT"),
-		RabbitMqUser: viper.GetString("RABBITMQ_USER"),
-		RabbitMqPass: viper.GetString("RABBITMQ_PASS"),
-		RedisHost:    viper.GetString("REDIS_HOST"),
-		RedisPort:    viper.GetInt("REDIS_PORT"),
-		RedisPass:    viper.GetString("REDIS_PASS"),
-		RedisDB:      viper.GetInt("REDIS_DB"),
+		EnvFile:            configFile,
+		Path:               appPath,
+		Prefix:             viper.GetString("PREFIX"),
+		Host:               viper.GetString("HOST"),
+		Port:               viper.GetInt("PORT"),
+		SecretKey:          viper.GetString("SECRET_KEY"),
+		DB:                 model.DB(viper.GetString("DB")),
+		DBPath:             dbPath,
+		DBName:             viper.GetString("DB_NAME"),
+		DBHost:             viper.GetString("DB_HOST"),
+		DBPort:             viper.GetInt("DB_PORT"),
+		DBUser:             viper.GetString("DB_USER"),
+		DBPass:             viper.GetString("DB_PASS"),
+		DBSsl:              viper.GetString("DB_SSL"),
+		RabbitMqHost:       viper.GetString("RABBITMQ_HOST"),
+		RabbitMqPort:       viper.GetInt("RABBITMQ_PORT"),
+		RabbitMqUser:       viper.GetString("RABBITMQ_USER"),
+		RabbitMqPass:       viper.GetString("RABBITMQ_PASS"),
+		RedisHost:          viper.GetString("REDIS_HOST"),
+		RedisPort:          viper.GetInt("REDIS_PORT"),
+		RedisPass:          viper.GetString("REDIS_PASS"),
+		RedisDB:            viper.GetInt("REDIS_DB"),
+		GithubClientID:     viper.GetString("GITHUB_CLIENT_ID"),
+		GithubClientSecret: viper.GetString("GITHUB_CLIENT_SECRET"),
 	}
 
 	db, err := database.NewDB(config)
@@ -203,8 +206,9 @@ var counter int64
 
 // UserAuth generate test request auth provides
 func UserAuth(s *Suite, typ ...string) {
+	pass := "1234"
 	atomic.AddInt64(&counter, 1)
-	user := model2.NewUser("1234")
+	user := model2.NewUser(&pass)
 	user.Username = fmt.Sprintf("testUser%d", atomic.LoadInt64(&counter))
 	user.Email = fmt.Sprintf("testUser%d@tecpor.com", atomic.LoadInt64(&counter))
 	user.IsActive = true

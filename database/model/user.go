@@ -37,11 +37,15 @@ type User struct {
 }
 
 // NewUser user generate with default data
-func NewUser(pwd string) *User {
-	return &User{
-		PasswordDigest: utils.HashPassword(pwd, 11),
-		IsActive:       true,
+func NewUser(pwd *string) *User {
+	if pwd != nil {
+		return &User{
+			PasswordDigest: utils.HashPassword(*pwd, 11),
+			IsActive:       true,
+		}
 	}
+
+	return &User{IsActive: false}
 }
 
 // TableName user database table name

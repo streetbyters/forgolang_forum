@@ -71,3 +71,11 @@ const (
 	// Email authentication
 	Email TwoFactor = "email"
 )
+
+// TParty third-party app type
+type TParty string
+
+const (
+	// Auth app type for third-party
+	Auth TParty = "auth"
+)

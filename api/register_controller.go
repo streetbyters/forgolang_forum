@@ -42,7 +42,7 @@ func (c RegisterController) Create(ctx *fasthttp.RequestCtx) {
 		return
 	}
 
-	user := model2.NewUser(registerRequest.Password)
+	user := model2.NewUser(&registerRequest.Password)
 	user.Email = registerRequest.Email
 	user.Username = registerRequest.Username
 	err := c.App.Database.Insert(new(model2.User),

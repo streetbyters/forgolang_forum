@@ -102,27 +102,30 @@ func main() {
 	}
 
 	config := &model.Config{
-		EnvFile:      configFile,
-		Path:         appPath,
-		Host:         viper.GetString("HOST"),
-		Port:         viper.GetInt("PORT"),
-		SecretKey:    viper.GetString("SECRET_KEY"),
-		DB:           model.DB(viper.GetString("DB")),
-		DBPath:       dbPath,
-		DBName:       viper.GetString("DB_NAME"),
-		DBHost:       viper.GetString("DB_HOST"),
-		DBPort:       viper.GetInt("DB_PORT"),
-		DBUser:       viper.GetString("DB_USER"),
-		DBPass:       viper.GetString("DB_PASS"),
-		DBSsl:        viper.GetString("DB_SSL"),
-		RabbitMqHost: viper.GetString("RABBITMQ_HOST"),
-		RabbitMqPort: viper.GetInt("RABBITMQ_PORT"),
-		RabbitMqUser: viper.GetString("RABBITMQ_USER"),
-		RabbitMqPass: viper.GetString("RABBITMQ_PASS"),
-		RedisHost:    viper.GetString("REDIS_HOST"),
-		RedisPort:    viper.GetInt("REDIS_PORT"),
-		RedisPass:    viper.GetString("REDIS_PASS"),
-		RedisDB:      viper.GetInt("REDIS_DB"),
+		EnvFile:            configFile,
+		Path:               appPath,
+		Prefix:             viper.GetString("PREFIX"),
+		Host:               viper.GetString("HOST"),
+		Port:               viper.GetInt("PORT"),
+		SecretKey:          viper.GetString("SECRET_KEY"),
+		DB:                 model.DB(viper.GetString("DB")),
+		DBPath:             dbPath,
+		DBName:             viper.GetString("DB_NAME"),
+		DBHost:             viper.GetString("DB_HOST"),
+		DBPort:             viper.GetInt("DB_PORT"),
+		DBUser:             viper.GetString("DB_USER"),
+		DBPass:             viper.GetString("DB_PASS"),
+		DBSsl:              viper.GetString("DB_SSL"),
+		RabbitMqHost:       viper.GetString("RABBITMQ_HOST"),
+		RabbitMqPort:       viper.GetInt("RABBITMQ_PORT"),
+		RabbitMqUser:       viper.GetString("RABBITMQ_USER"),
+		RabbitMqPass:       viper.GetString("RABBITMQ_PASS"),
+		RedisHost:          viper.GetString("REDIS_HOST"),
+		RedisPort:          viper.GetInt("REDIS_PORT"),
+		RedisPass:          viper.GetString("REDIS_PASS"),
+		RedisDB:            viper.GetInt("REDIS_DB"),
+		GithubClientID:     viper.GetString("GITHUB_CLIENT_ID"),
+		GithubClientSecret: viper.GetString("GITHUB_CLIENT_SECRET"),
 	}
 
 	if config.DB == "" {
@@ -141,8 +144,9 @@ func main() {
 	newApp.Database = db
 	newApp.Mode = mode
 
+	// TODO: Task system will be further developed.
 	// Tasks
-	_ts := make(map[string]func(app *cmn.App, args ...interface{})error)
+	_ts := make(map[string]func(app *cmn.App, args ...interface{}) error)
 	_ts["GenerateRolePermissions"] = tasks.GenerateRolePermissions
 	// Tasks
 
@@ -168,7 +172,7 @@ func main() {
 	}
 
 	go func() {
-		logger.LogInfo("Started application")
+		logger.LogInfo(fmt.Sprintf("Started application %s", newAPI.Router.Addr))
 		err := newAPI.Router.Server.ListenAndServe(newAPI.Router.Addr)
 		cmn.FailOnError(logger, err)
 	}()
@@ -185,9 +189,13 @@ AWS_SES_ACCESS_KEY_ID=
 AWS_SES_SECRET_ACCESS_KEY=
 AWS_SES_REGION=
 AWS_SES_SOURCE=
+
 AWS_S3_ACCESS_KEY_ID=
 AWS_S3_SECRET_ACCESS_KEY=
-AWS_S3_BUCKET`, "asdasd"))
+AWS_S3_BUCKET=
+
+GITHUB_CLIENT_ID=
+GITHUB_CLIENT_SECRET=`, "asdasd"))
 
 	var file *os.File
 	_, err := os.Stat(filepath.Join(appPath, "secret.env"))

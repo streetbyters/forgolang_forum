@@ -17,7 +17,8 @@ func (s LoginControllerTest) SetupSuite() {
 }
 
 func (s LoginControllerTest) Test_PostLoginWithValidParams() {
-	user := model2.NewUser("123456")
+	pass := "123456"
+	user := model2.NewUser(&pass)
 	user.Username = "akdilsiz-login"
 	user.Email = "akdilsiz@tecpor.com"
 	userModel := new(model2.User)
@@ -75,7 +76,8 @@ func (s LoginControllerTest) Test_Should_404Error_PostLoginWithValidParamsIfUser
 }
 
 func (s LoginControllerTest) Test_Should_401Error_PostLoginWithValidParamsIfPasswordNotMatch() {
-	user := model2.NewUser("123456789")
+	pass := "123456789"
+	user := model2.NewUser(&pass)
 	user.Username = "akdilsiz2-notmatch"
 	user.Email = "akdilsiz2@tecpor.com"
 	userModel := new(model2.User)

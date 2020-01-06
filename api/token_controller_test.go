@@ -17,9 +17,11 @@ func (s TokenControllerTest) SetupSuite() {
 }
 
 func (s TokenControllerTest) Test_PostTokenWithValidParams() {
-	userModel := model2.NewUser("123456")
+	pass := "123456"
+	userModel := model2.NewUser(&pass)
 	userModel.Username = "akdilsiz"
 	userModel.Email = "akdilsiz@tecpor.com"
+	userModel.IsActive = true
 	user := new(model2.User)
 
 	err := s.API.App.Database.Insert(user, userModel, "id", "inserted_at")
@@ -49,9 +51,11 @@ func (s TokenControllerTest) Test_PostTokenWithValidParams() {
 }
 
 func (s TokenControllerTest) Test_Shoul_404Error_PostTokenWithValidParamsIfNotExists() {
-	userModel := model2.NewUser("123456")
+	pass := "123456"
+	userModel := model2.NewUser(&pass)
 	userModel.Username = "akdilsiz2"
 	userModel.Email = "akdilsiz2@tecpor.com"
+	userModel.IsActive = true
 	user := new(model2.User)
 
 	err := s.API.App.Database.Insert(user, userModel, "id")
@@ -72,7 +76,8 @@ func (s TokenControllerTest) Test_Shoul_404Error_PostTokenWithValidParamsIfNotEx
 }
 
 func (s TokenControllerTest) Test_Should_404Error_PostTokenWithValidParamsIfUserNotActive() {
-	userModel := model2.NewUser("123456")
+	pass := "123456"
+	userModel := model2.NewUser(&pass)
 	userModel.Username = "akdilsiz3"
 	userModel.Email = "akdilsiz3@tecpor.com"
 	userModel.IsActive = false
@@ -101,9 +106,11 @@ func (s TokenControllerTest) Test_Should_404Error_PostTokenWithValidParamsIfUser
 }
 
 func (s TokenControllerTest) Test_Should_404Error_PostTokenWithValidParamsIfPassphraseExpire() {
-	userModel := model2.NewUser("123456")
+	pass := "123456"
+	userModel := model2.NewUser(&pass)
 	userModel.Username = "akdilsiz4"
 	userModel.Email = "akdilsiz4@tecpor.com"
+	userModel.IsActive = true
 	user := new(model2.User)
 
 	err := s.API.App.Database.Insert(user, userModel, "id")
@@ -129,9 +136,11 @@ func (s TokenControllerTest) Test_Should_404Error_PostTokenWithValidParamsIfPass
 }
 
 func (s TokenControllerTest) Test_Should_404Err_PostTokenWithValidParamsIfUserRoleNotExists() {
-	userModel := model2.NewUser("123456")
+	pass := "123456"
+	userModel := model2.NewUser(&pass)
 	userModel.Username = "akdilsiz5"
 	userModel.Email = "akdilsiz5@tecpor.com"
+	userModel.IsActive = true
 	user := new(model2.User)
 
 	err := s.API.App.Database.Insert(user, userModel, "id", "inserted_at")

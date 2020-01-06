@@ -85,7 +85,15 @@ func NewRouter(api *API) *Router {
 	hC := HomeController{API: api}
 	r.Get("/", hC.Index)
 
-	r.Route("/api/v1", func(r phi.Router) {
+	routerPrefix := strings.Join([]string{api.App.Config.Prefix, "v1"}, "/")
+
+	r.Route(routerPrefix, func(r phi.Router) {
+		// Auth third-party routes
+		r.Route("/auth", func(r phi.Router) {
+			r.Get("/github", AuthController{API: api}.Github)
+			r.Get("/github/callback", AuthController{API: api}.GithubCallback)
+		})
+
 		r.Route("/user", func(r phi.Router) {
 			lC := LoginController{API: api}
 			r.Post("/sign_in", lC.Create)

@@ -16,12 +16,34 @@
 
 package model
 
-import "forgolang_forum/database"
+import (
+	"forgolang_forum/database"
+	"time"
+)
 
 // ThirdParty integrated third-party systems structure
 type ThirdParty struct {
 	database.DBInterface `json:"-"`
-	ID int64 `db:"id" json:"-"`
-	Name string `db:"name" json:"name" validate:"required,gte=2,lte=200"`
-	Code string `db:"code" json:"code" validate:"required"`
+	ID                   int64           `db:"id" json:"-"`
+	Name                 string          `db:"name" json:"name" validate:"required,gte=2,lte=200"`
+	Code                 string          `db:"code" json:"code" unique:"third_party_code_unique" validate:"required"`
+	Type                 database.TParty `db:"type" json:"type" validate:"required"`
+	IsActive             bool            `db:"is_active" json:"is_active"`
+	InsertedAt           time.Time       `db:"inserted_at" json:"inserted_at"`
+	UpdatedAt            time.Time       `db:"updated_at" json:"updated_at"`
+}
+
+// NewThirdParty generate third-party structure
+func NewThirdParty() *ThirdParty {
+	return &ThirdParty{IsActive: true}
+}
+
+// TableName third-party database
+func (m ThirdParty) TableName() string {
+	return "third_party"
+}
+
+// ToJSON third-party structure to json string
+func (m ThirdParty) ToJSON() string {
+	return database.ToJSON(m)
 }
