@@ -14,15 +14,14 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package cmn
+package model
 
-import "github.com/valyala/fasthttp"
+import "forgolang_forum/database"
 
-// Controller rest api interface
-type Controller interface {
-	Index(ctx *fasthttp.RequestCtx)
-	Show(ctx *fasthttp.RequestCtx)
-	Create(ctx *fasthttp.RequestCtx)
-	Update(ctx *fasthttp.RequestCtx)
-	Delete(ctx *fasthttp.RequestCtx)
+// ThirdParty integrated third-party systems structure
+type ThirdParty struct {
+	database.DBInterface `json:"-"`
+	ID int64 `db:"id" json:"-"`
+	Name string `db:"name" json:"name" validate:"required,gte=2,lte=200"`
+	Code string `db:"code" json:"code" validate:"required"`
 }

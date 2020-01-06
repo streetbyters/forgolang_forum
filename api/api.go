@@ -14,13 +14,13 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package api
+package cmn
 
 import (
 	"bytes"
 	"encoding/json"
 	"errors"
-	"forgolang_forum/cmn"
+	"forgolang_forum/api"
 	"forgolang_forum/model"
 	"forgolang_forum/utils"
 	pluggableError "github.com/akdilsiz/agente/errors"
@@ -31,10 +31,10 @@ import (
 
 // API rest api structure
 type API struct {
-	App           *cmn.App
-	Router        *Router
-	JWTAuth       *JWTAuth
-	Authorization *Authorization
+	App           *App
+	Router        *api.Router
+	JWTAuth       *api.JWTAuth
+	Authorization *api.Authorization
 	Auth          struct {
 		ID     int64
 		RoleID int64
@@ -43,11 +43,11 @@ type API struct {
 }
 
 // NewAPI building api
-func NewAPI(app *cmn.App) *API {
+func NewAPI(app *App) *API {
 	api := &API{App: app}
-	api.JWTAuth = NewJWTAuth(api)
-	api.Authorization = NewAuthorization(api)
-	api.Router = NewRouter(api)
+	api.JWTAuth = api.NewJWTAuth(api)
+	api.Authorization = api.NewAuthorization(api)
+	api.Router = api.NewRouter(api)
 
 	return api
 }

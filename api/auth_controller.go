@@ -14,15 +14,23 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package cmn
+package api
 
-import "github.com/valyala/fasthttp"
+import (
+	"forgolang_forum/model"
+	"github.com/valyala/fasthttp"
+)
 
-// Controller rest api interface
-type Controller interface {
-	Index(ctx *fasthttp.RequestCtx)
-	Show(ctx *fasthttp.RequestCtx)
-	Create(ctx *fasthttp.RequestCtx)
-	Update(ctx *fasthttp.RequestCtx)
-	Delete(ctx *fasthttp.RequestCtx)
+// GithubController third-party github authentication controller
+type GithubController struct {
+	Controller
+	*API
+}
+
+// Create github auth callback method
+func (c GithubController) Create(ctx *fasthttp.RequestCtx) {
+
+	c.JSONResponse(ctx, model.ResponseSuccessOne{
+		Data: nil,
+	}, fasthttp.StatusCreated)
 }

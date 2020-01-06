@@ -501,15 +501,26 @@ func (d *Database) queryRow(query string, target interface{}, params ...interfac
 	return result
 }
 
+func newDB(d *Database) *Database {
+	nD := new(Database)
+	nD.DB = d.DB
+	nD.Config = d.Config
+	nD.Type = d.Type
+	nD.Logger = d.Logger
+
+	return nD
+}
+
 // Transaction database tx builder
 func (d *Database) Transaction(cb func(tx *Tx) error) *Database {
-	d.beginTx()
+	d2 := newDB(d)
+	d2.beginTx()
 	newTx := new(Tx)
-	newTx.DB = d
+	newTx.DB = d2
 	if cb(newTx) != nil {
-		return d.rollback()
+		return d2.rollback()
 	}
-	return d.commit()
+	return d2.commit()
 }
 
 // Select query builder by database type.
