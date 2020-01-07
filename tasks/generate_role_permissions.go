@@ -20,13 +20,19 @@ import (
 	"fmt"
 	"forgolang_forum/cmn"
 	"forgolang_forum/database/model"
+	model2 "forgolang_forum/model"
 	"forgolang_forum/utils"
 	"strings"
 )
 
 // GenerateRolePermissions generate role permissions for api controller and methods
 func GenerateRolePermissions(app *cmn.App, args interface{}) error {
-	apiRoutes := GetArg("Router", args).(map[string]map[string][]string)
+	var apiRoutes map[string]map[string][]string
+	if app.Mode == model2.Test {
+		apiRoutes = args.(map[string]map[string][]string)
+	} else {
+		apiRoutes = GetArg("Router", args).(map[string]map[string][]string)
+	}
 
 	role := model.NewRole()
 	var roles []model.Role
