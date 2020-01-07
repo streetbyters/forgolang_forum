@@ -62,7 +62,8 @@ func getChanges(args ...interface{}) ([]Change, []string, map[string]interface{}
 	keys := args[6].([]string)
 	namedParams := args[7].(map[string]interface{})
 
-	if field2, ok := t2.FieldByName(field.Name); ok && field2.Tag.Get("db") != "" && field.Name != "ID" {
+	if field2, ok := t2.FieldByName(field.Name); ok && field2.Tag.Get("db") != "" && field.Name != "ID" &&
+		field2.Tag.Get("read_after_writes") != "true" {
 		var change Change
 
 		val := values.FieldByName(field.Name)
