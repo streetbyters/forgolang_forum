@@ -46,6 +46,7 @@ func (s TokenControllerTest) Test_PostTokenWithValidParams() {
 	data, _ := resp.Success.Data.(map[string]interface{})
 	s.Equal(data["user_id"], float64(userModel.ID))
 	s.NotNil(data["jwt"])
+	s.Equal(data["role"], "superadmin")
 
 	s.API.App.Logger.LogInfo("Successfully post token with valid params")
 }
