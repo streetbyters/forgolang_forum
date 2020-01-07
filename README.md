@@ -83,6 +83,10 @@ Finally, call the task from the command line.
 go run ./cmd -mode dev -task -name ExampleTask
 ```
 
+## Integrations
+ - [Github](docs/integrations.md)
+ - AWS(SES, S3)
+
 ## Contribution
 I would like to accept any contributions to make Forgolang.com better and feature rich.\
 [See detail](docs/contributions.md)
