@@ -23,6 +23,9 @@ import (
 	"fmt"
 	"forgolang_forum/model"
 	errors2 "github.com/akdilsiz/agente/errors"
+	"github.com/akdilsiz/limiterphi"
+	"github.com/ulule/limiter/v3"
+	sredis "github.com/ulule/limiter/v3/drivers/store/redis"
 	"github.com/fate-lovely/phi"
 	"github.com/valyala/fasthttp"
 	"net/http"
@@ -72,12 +75,23 @@ func NewRouter(api *API) *Router {
 
 	prefix = fmt.Sprintf("%s/%s", hostname, b64[0:10])
 
+	rate, err := limiter.NewRateFromFormatted("20-S")
+	store, err := sredis.NewStoreWithOptions(api.App.Cache, limiter.StoreOptions{
+		Prefix:   "forgolang.com",
+		MaxRetry: 4,
+	})
+	rateMiddleware := limiterphi.NewMiddleware(limiter.New(store, rate))
+	if err != nil {
+		panic(err)
+	}
+
 	r := phi.NewRouter()
 
 	r.Use(router.requestID)
 	r.Use(router.recover)
 	r.Use(router.logger)
 	r.Use(router.cors)
+	r.Use(rateMiddleware.Handle)
 
 	r.NotFound(router.notFound)
 	r.MethodNotAllowed(router.methodNotAllowed)
