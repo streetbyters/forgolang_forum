@@ -61,7 +61,7 @@ func (c LoginController) Create(ctx *fasthttp.RequestCtx) {
 		userState.TableName(),
 	), userModel, database.Active, loginRequest.ID).Force()
 
-	if err := utils.ComparePassword([]byte(userModel.PasswordDigest), []byte(loginRequest.Password)); err != nil {
+	if err := utils.ComparePassword([]byte(userModel.PasswordDigest.String), []byte(loginRequest.Password)); err != nil {
 		c.JSONResponse(ctx, model.ResponseError{
 			Detail: "authentication failed",
 		}, fasthttp.StatusUnauthorized)

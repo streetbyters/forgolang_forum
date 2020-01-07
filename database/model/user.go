@@ -20,6 +20,7 @@ import (
 	"forgolang_forum/database"
 	"github.com/akdilsiz/agente/utils"
 	"gopkg.in/guregu/null.v3/zero"
+	"time"
 )
 
 // User Authentication/authorization base database model
@@ -27,20 +28,20 @@ type User struct {
 	database.DBInterface `json:"-"`
 	ID                   int64       `db:"id" json:"id"`
 	Username             string      `db:"username" json:"username" unique:"users_username_unique_index" validate:"required"`
-	PasswordDigest       string      `db:"password_digest" json:"-"`
+	PasswordDigest       zero.String `db:"password_digest" json:"-"`
 	Password             string      `db:"-" json:"password" validate:"required"`
 	Email                string      `db:"email" json:"email" unique:"users_email_unique_index" validate:"required,email"`
 	IsActive             bool        `db:"is_active" json:"is_active"`
 	Avatar               zero.String `db:"avatar" json:"avatar"`
-	InsertedAt           zero.Time   `db:"inserted_at" json:"inserted_at"`
-	UpdatedAt            zero.Time   `db:"updated_at" json:"updated_at"`
+	InsertedAt           time.Time   `db:"inserted_at" json:"inserted_at"`
+	UpdatedAt            time.Time   `db:"updated_at" json:"updated_at"`
 }
 
 // NewUser user generate with default data
 func NewUser(pwd *string) *User {
 	if pwd != nil {
 		return &User{
-			PasswordDigest: utils.HashPassword(*pwd, 11),
+			PasswordDigest: zero.StringFrom(utils.HashPassword(*pwd, 11)),
 			IsActive:       true,
 		}
 	}
@@ -56,4 +57,9 @@ func (d User) TableName() string {
 // ToJSON User database model to json string
 func (d User) ToJSON() string {
 	return database.ToJSON(d)
+}
+
+// Timestamps generate timestamp fields
+func (d User) Timestamps() bool {
+	return true
 }

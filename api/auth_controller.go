@@ -1,3 +1,4 @@
+// +build !test
 // Copyright 2019 Abdulkadir DILSIZ
 // Licensed to the Apache Software Foundation (ASF) under one or more
 // contributor license agreements.  See the NOTICE file distributed with
@@ -23,7 +24,6 @@ import (
 	"fmt"
 	"forgolang_forum/database"
 	model2 "forgolang_forum/database/model"
-	"forgolang_forum/model"
 	github2 "forgolang_forum/thirdparty/github"
 	"github.com/google/go-github/v28/github"
 	"github.com/valyala/fasthttp"
@@ -35,15 +35,16 @@ type AuthController struct {
 	*API
 }
 
+// Github redirect github oauth page
 func (c AuthController) Github(ctx *fasthttp.RequestCtx) {
 	ctx.Redirect(c.App.Github.URL(), fasthttp.StatusTemporaryRedirect)
 }
 
-// Create github auth callback method
+// GithubCallback github oauth callback method
 func (c AuthController) GithubCallback(ctx *fasthttp.RequestCtx) {
 	var thirdParty model2.ThirdParty
 
-	c.App.Database.QueryRowWithModel(fmt.Sprintf("SELECT t.* FROM %s AS t " +
+	c.App.Database.QueryRowWithModel(fmt.Sprintf("SELECT t.* FROM %s AS t "+
 		"WHERE t.code = 'github' AND t.type = 'auth' AND t.is_active = true",
 		thirdParty.TableName()),
 		&thirdParty).Force()
@@ -79,22 +80,43 @@ func (c AuthController) GithubCallback(ctx *fasthttp.RequestCtx) {
 	user.Avatar.SetValid(githubUser.GetAvatarURL())
 	user.IsActive = true
 
+	passphrase := model2.NewUserPassphrase(0)
 	db := c.App.Database.Transaction(func(tx *database.Tx) error {
-		//
-		//currentUser := new(model2.User)
-		//tx.DB.QueryRowWithModel(fmt.Sprintf("SELECT u.* FROM %s AS u " +
-		//	"WHERE u.email = $1",
-		//	currentUser.TableName()),
-		//	&currentUser,
-		//	user.Email)
-		//
-		if err := tx.DB.Insert(new(model2.User), user, "id", "inserted_at", "updated_at"); err != nil {
-			return err
+		var currentUser model2.User
+		tx.DB.QueryRowWithModel(fmt.Sprintf("SELECT u.* FROM %s AS u "+
+			"WHERE u.email = $1",
+			currentUser.TableName()),
+			&currentUser,
+			user.Email)
+
+		var currentComebackApp model2.UserComebackApp
+		if currentUser.ID > int64(0) {
+			passphrase.UserID = currentUser.ID
+			if err := tx.DB.Update(&currentUser, user, nil,
+				"id", "inserted_at", "updated_at"); err != nil {
+				defaultLogger.LogError(err, "current user error")
+				return err
+			}
+			tx.DB.QueryRowWithModel(fmt.Sprintf("SELECT c.* FROM %s AS c "+
+				"WHERE c.user_id = $1 AND c.tparty_id = $2",
+				currentComebackApp.TableName()),
+				&currentComebackApp,
+				currentUser.ID,
+				thirdParty.ID)
+		} else {
+			if err := tx.DB.Insert(new(model2.User), user, "id", "inserted_at", "updated_at"); err != nil {
+				fmt.Println(err)
+				defaultLogger.LogError(err, "github user insert error")
+				return err
+			}
+			passphrase.UserID = user.ID
 		}
 
-		roleAssignment := model2.NewUserRoleAssignment(user.ID, 3)
-		if err := tx.DB.Insert(new(model2.UserRoleAssignment), roleAssignment, "id"); err != nil {
-			return err
+		if currentUser.ID == int64(0) {
+			roleAssignment := model2.NewUserRoleAssignment(user.ID, 3)
+			if err := tx.DB.Insert(new(model2.UserRoleAssignment), roleAssignment, "id"); err != nil {
+				return err
+			}
 		}
 
 		comebackApp := model2.NewUserComebackApp(user.ID, thirdParty.ID)
@@ -111,19 +133,27 @@ func (c AuthController) GithubCallback(ctx *fasthttp.RequestCtx) {
 		b, _ := json.Marshal(userInformation)
 		comebackApp.Data.Scan(b)
 
-		if err := tx.DB.Insert(new(model2.UserComebackApp), comebackApp, "id"); err != nil {
+		var err error
+		if currentComebackApp.ID > int64(0) {
+			err = tx.DB.Update(&currentComebackApp, comebackApp, nil,
+				"id", "updated_at")
+		} else {
+			err = tx.DB.Insert(new(model2.UserComebackApp), comebackApp, "id")
+		}
+
+		if err != nil {
 			return err
 		}
 
-		return nil
+		return tx.DB.Insert(new(model2.UserPassphrase), passphrase, "id")
 	})
 
 	if db.Error != nil {
 		defaultLogger.LogError(err, fmt.Sprintf("github user get failed"))
-		c.JSONResponse(ctx, model.ResponseError{
-			Detail: "upsss",
-		}, fasthttp.StatusInternalServerError)
+		ctx.Redirect("https://forgolang.com/login?type=github&status=failed", fasthttp.StatusTemporaryRedirect)
+		return
 	}
 
-	ctx.Redirect("https://forgolang.com/login?token=12123&type=github", fasthttp.StatusTemporaryRedirect)
+	ctx.Redirect(fmt.Sprintf("https://forgolang.com/login?token=%s&type=github",
+		passphrase.Passphrase), fasthttp.StatusTemporaryRedirect)
 }
