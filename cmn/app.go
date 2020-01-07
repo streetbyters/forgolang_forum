@@ -24,6 +24,8 @@ import (
 	"forgolang_forum/thirdparty/github"
 	"forgolang_forum/utils"
 	"github.com/go-redis/redis"
+	"github.com/go-resty/resty/v2"
+	"github.com/olivere/elastic/v7"
 	"github.com/streadway/amqp"
 	"net/url"
 	"os"
@@ -35,17 +37,19 @@ var RedisKeys = make(map[string]interface{})
 
 // App structure
 type App struct {
-	Database *database.Database
-	Channel  chan os.Signal
-	Config   *model.Config
-	Logger   *utils.Logger
-	Mode     model.MODE
-	Storage  *aws.S3
-	Email    *aws.SES
-	Cache    *redis.Client
-	Amqp     *amqp.Connection
-	Queue    *Queue
-	Github   *github.Github
+	Database      *database.Database
+	Channel       chan os.Signal
+	Config        *model.Config
+	Logger        *utils.Logger
+	Mode          model.MODE
+	Storage       *aws.S3
+	Email         *aws.SES
+	Cache         *redis.Client
+	Amqp          *amqp.Connection
+	Queue         *Queue
+	Github        *github.Github
+	HttpClient    *resty.Client
+	ElasticClient *elastic.Client
 }
 
 // NewApp building new app
@@ -86,6 +90,10 @@ func NewApp(config *model.Config, logger *utils.Logger) *App {
 	FailOnError(logger, err)
 	logger.LogInfo("Started rabbitMQ connection")
 
+	app.HttpClient = resty.New()
+	app.ElasticClient, _ = elastic.NewClient(
+		elastic.SetURL(fmt.Sprintf("http://%s:%d", app.Config.ElasticHost, app.Config.ElasticPort)),
+	)
 	RedisKeys["permissions"] = "permissions"
 	RedisKeys["routes"] = "routes"
 	RedisKeys["user"] = map[string]string{

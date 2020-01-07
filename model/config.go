@@ -43,6 +43,8 @@ type Config struct {
 	RedisPort          int    `json:"redis_port"`
 	RedisPass          string `json:"redis_pass"`
 	RedisDB            int    `json:"redis_db"`
+	ElasticHost        string `json:"elastic_host"`
+	ElasticPort        int    `json:"elastic_port"`
 	CDNUrl             string `json:"cdn_url"`
 	GithubClientID     string `json:"github_client_id"`
 	GithubClientSecret string `json:"github_client_secret"`

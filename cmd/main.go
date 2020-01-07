@@ -124,6 +124,8 @@ func main() {
 		RedisPort:          viper.GetInt("REDIS_PORT"),
 		RedisPass:          viper.GetString("REDIS_PASS"),
 		RedisDB:            viper.GetInt("REDIS_DB"),
+		ElasticHost:        viper.GetString("ELASTIC_HOST"),
+		ElasticPort:        viper.GetInt("ELASTIC_PORT"),
 		GithubClientID:     viper.GetString("GITHUB_CLIENT_ID"),
 		GithubClientSecret: viper.GetString("GITHUB_CLIENT_SECRET"),
 	}
@@ -146,7 +148,8 @@ func main() {
 
 	// TODO: Task system will be further developed.
 	// Tasks
-	_ts := make(map[string]func(app *cmn.App, args ...interface{}) error)
+	_ts := make(map[string]func(app *cmn.App, args interface{}) error)
+	_ts["GenerateBase"] = tasks.GenerateBase
 	_ts["GenerateRolePermissions"] = tasks.GenerateRolePermissions
 	// Tasks
 
@@ -160,12 +163,16 @@ func main() {
 
 	newAPI := api.NewAPI(newApp)
 
+	taskArgs := make(map[string]interface{})
+	taskArgs["Router"] = newAPI.Router.Routes
+	taskArgs["Reset"] = reset
+
 	if task {
 		_t, ok := _ts[name]
 		if !ok {
 			logger.LogFatal(errors.New("task not found"))
 		}
-		if err := _t(newApp, newAPI.Router.Routes); err != nil {
+		if err := _t(newApp, taskArgs); err != nil {
 			panic(err)
 		}
 		return

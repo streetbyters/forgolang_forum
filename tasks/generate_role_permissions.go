@@ -25,8 +25,8 @@ import (
 )
 
 // GenerateRolePermissions generate role permissions for api controller and methods
-func GenerateRolePermissions(app *cmn.App, args ...interface{}) error {
-	apiRoutes := args[0].(map[string]map[string][]string)
+func GenerateRolePermissions(app *cmn.App, args interface{}) error {
+	apiRoutes := GetArg("Router", args).(map[string]map[string][]string)
 
 	role := model.NewRole()
 	var roles []model.Role

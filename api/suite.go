@@ -147,6 +147,8 @@ func NewSuite() *Suite {
 		RedisPort:          viper.GetInt("REDIS_PORT"),
 		RedisPass:          viper.GetString("REDIS_PASS"),
 		RedisDB:            viper.GetInt("REDIS_DB"),
+		ElasticHost:        viper.GetString("ELASTIC_HOST"),
+		ElasticPort:        viper.GetInt("ELASTIC_PORT"),
 		GithubClientID:     viper.GetString("GITHUB_CLIENT_ID"),
 		GithubClientSecret: viper.GetString("GITHUB_CLIENT_SECRET"),
 	}
