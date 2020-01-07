@@ -39,7 +39,26 @@ type CategoryController struct {
 func (c CategoryController) Index(ctx *fasthttp.RequestCtx) {
 	paginate, _, _ := c.Paginate(ctx, "id", "inserted_at")
 
+	var count int64
 	var categories []model.Category
+
+	if s, err := c.App.Cache.SMembers(cmn.GetRedisKey("category", "all")).Result();
+		err == nil && len(s) > 0 {
+		for _, v := range s {
+			var c model.Category
+			json.Unmarshal([]byte(v), &c)
+			categories = append(categories, c)
+		}
+
+		count, _ := c.App.Cache.SCard(cmn.GetRedisKey("category", "all")).Result()
+
+		c.JSONResponse(ctx, model2.ResponseSuccess{
+			Data:       categories,
+			TotalCount: count,
+		}, fasthttp.StatusOK)
+		return
+	}
+
 	c.App.Database.QueryWithModel(fmt.Sprintf(`
 		SELECT c.* FROM %s AS c ORDER BY $1 $1
 	`, c.Model.TableName()),
@@ -47,7 +66,6 @@ func (c CategoryController) Index(ctx *fasthttp.RequestCtx) {
 		paginate.OrderField,
 		paginate.OrderBy)
 
-	var count int64
 	c.App.Database.DB.Get(&count,
 		fmt.Sprintf("SELECT count(*) FROM %s", c.Model.TableName()))
 
@@ -115,6 +133,7 @@ func (c CategoryController) Create(ctx *fasthttp.RequestCtx) {
 	c.App.Cache.Set(fmt.Sprintf("%s:%d",
 		cmn.GetRedisKey("category", "one"),
 		category.ID), category.ToJSON(), 0).Err()
+	c.App.Cache.SAdd(cmn.GetRedisKey("category", "all"), category.ToJSON())
 
 	c.JSONResponse(ctx, model2.ResponseSuccessOne{
 		Data: category,
@@ -144,9 +163,12 @@ func (c CategoryController) Update(ctx *fasthttp.RequestCtx) {
 	categoryRequest.Slug = slug.Make(categoryRequest.Title)
 	categoryRequest.InsertedAt = category.InsertedAt
 
+	c.App.Cache.SRem(cmn.GetRedisKey("category", "all"), category.ToJSON())
+
 	err := c.App.Database.Update(category, &categoryRequest, nil,
 		"id", "inserted_at", "updated_at")
 	if errs, err := database.ValidateConstraint(err, category); err != nil {
+		c.App.Cache.SAdd(cmn.GetRedisKey("category", "all"), category.ToJSON())
 		c.JSONResponse(ctx, model2.ResponseError{
 			Errors: errs,
 			Detail: fasthttp.StatusMessage(fasthttp.StatusUnprocessableEntity),
@@ -157,6 +179,7 @@ func (c CategoryController) Update(ctx *fasthttp.RequestCtx) {
 	c.App.Cache.Set(fmt.Sprintf("%s:%d",
 		cmn.GetRedisKey("category", "one"),
 		category.ID), category.ToJSON(), 0)
+	c.App.Cache.SAdd(cmn.GetRedisKey("category", "all"), category.ToJSON())
 
 	c.JSONResponse(ctx, model2.ResponseSuccessOne{
 		Data: category,
@@ -165,10 +188,17 @@ func (c CategoryController) Update(ctx *fasthttp.RequestCtx) {
 
 // Delete category with given identifier
 func (c CategoryController) Delete(ctx *fasthttp.RequestCtx) {
+	var category model.Category
+	c.App.Database.QueryRowWithModel(fmt.Sprintf("SELECT c.* FROM %s AS c WHERE c.id = $1",
+		category.TableName()),
+		&category,
+		phi.URLParam(ctx, "categoryID")).Force()
+
 	c.App.Database.Delete(c.Model.TableName(),
 		"id = $1",
 		phi.URLParam(ctx, "categoryID")).Force()
 
+	c.App.Cache.SRem(cmn.GetRedisKey("category", "all"), category.ToJSON())
 	c.App.Cache.Del(fmt.Sprintf("%s:%s",
 		cmn.GetRedisKey("category", "one"),
 		phi.URLParam(ctx, "categoryID")))
