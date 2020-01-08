@@ -22,7 +22,7 @@ import (
 	"strconv"
 )
 
-// UserPolicy category authorization
+// UserPolicy user authorization
 type UserPolicy struct {
 	Policy
 	*API

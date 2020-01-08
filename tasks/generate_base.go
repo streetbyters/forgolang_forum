@@ -21,7 +21,7 @@ import (
 	"forgolang_forum/cmn"
 )
 
-const elasticBody = `{"settings":{"analysis":{"analyzer":{"default":{"tokenizer":"standard","filter":["standard","ascii"]}},"filter":{"ascii":{"type":"asciifolding","preserve_original":true}}}}}`
+const elasticBody = `{"settings":{"analysis":{"analyzer":{"default":{"tokenizer":"standard","filter":["ascii"]}},"filter":{"ascii":{"type":"asciifolding","preserve_original":true}}}}}`
 
 // GenerateBase artifacts
 func GenerateBase(app *cmn.App, args interface{}) error {

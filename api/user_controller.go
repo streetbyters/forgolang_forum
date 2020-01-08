@@ -17,6 +17,7 @@
 package api
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"forgolang_forum/cmn"
@@ -26,6 +27,7 @@ import (
 	"github.com/akdilsiz/agente/utils"
 	"github.com/fate-lovely/phi"
 	"github.com/valyala/fasthttp"
+	"strconv"
 	"time"
 )
 
@@ -123,6 +125,11 @@ func (c UserController) Create(ctx *fasthttp.RequestCtx) {
 
 	user.Password = "****"
 
+	c.App.ElasticClient.Index().Index("users").
+		Id(strconv.FormatInt(user.ID, 10)).
+		BodyJson(user).
+		Do(context.TODO())
+
 	c.JSONResponse(ctx, model2.ResponseSuccessOne{
 		Data: user,
 	}, fasthttp.StatusCreated)
@@ -161,11 +168,15 @@ func (c UserController) Update(ctx *fasthttp.RequestCtx) {
 		return
 	}
 
+	user.Password = "****"
+
 	c.App.Cache.Set(fmt.Sprintf("%s:%d",
 		cmn.GetRedisKey("user", "one"), user.ID),
 		user.ToJSON(), time.Minute*30)
 
-	user.Password = "****"
+	go c.App.ElasticClient.Index().Index("users").
+		Id(strconv.FormatInt(user.ID, 10)).
+		BodyJson(user).Do(context.TODO())
 
 	c.JSONResponse(ctx, model2.ResponseSuccessOne{
 		Data: user,
@@ -183,6 +194,9 @@ func (c UserController) Delete(ctx *fasthttp.RequestCtx) {
 	c.App.Cache.Del(fmt.Sprintf("%s:%s",
 		cmn.GetRedisKey("user", "one"),
 		phi.URLParam(ctx, "userID")))
+	go c.App.ElasticClient.Delete().Index("users").
+		Id(strconv.FormatInt(user.ID, 10)).
+		Do(context.TODO())
 
 	c.JSONResponse(ctx, model2.ResponseSuccessOne{
 		Data: nil,

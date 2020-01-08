@@ -29,37 +29,47 @@ import (
 	"time"
 )
 
-// ConfirmationController user activation api controller
-type ConfirmationController struct {
+// UserRoleAssignmentController user role assignment api controller
+type UserRoleAssignmentController struct {
 	Controller
 	*API
 }
 
-// Create method for user activation
-func (c ConfirmationController) Create(ctx *fasthttp.RequestCtx) {
-	otc := new(model.UserOneTimeCode)
-	userState := new(model.UserState)
+// Create method for user role assignment
+func (c UserRoleAssignmentController) Create(ctx *fasthttp.RequestCtx) {
+	var roleAssignment model.UserRoleAssignment
+	c.JSONBody(ctx, &roleAssignment)
 
-	c.App.Database.QueryRowWithModel(fmt.Sprintf(`
-		SELECT otc.* FROM %s AS otc
-		LEFT OUTER JOIN %s AS us ON otc.user_id = us.user_id
-		LEFT OUTER JOIN %s AS us2 ON us.user_id = us2.user_id and us.id < us2.id
-		WHERE us2.id IS NULL AND otc.user_id = $1 AND otc.code = $2 AND otc.type = 'confirmation' AND
-			otc.inserted_at >= ((CURRENT_TIMESTAMP at time zone 'utc') - interval '15 minutes') AND 
-			(us.id IS NULL OR us.state != 'active')
-	`, otc.TableName(), userState.TableName(), userState.TableName()),
-		otc,
-		phi.URLParam(ctx, "userID"),
-		phi.URLParam(ctx, "code")).Force()
+	i, err := strconv.ParseInt(phi.URLParam(ctx, "userID"), 10, 64)
+	if err != nil {
+		c.JSONResponse(ctx, model2.ResponseError{
+			Detail: fasthttp.StatusMessage(fasthttp.StatusBadRequest),
+		}, fasthttp.StatusBadRequest)
+		return
+	}
+	roleAssignment.UserID = i
 
-	userState = model.NewUserState(otc.UserID)
-	userState.State = database.Active
-	userState.SourceUserID.SetValid(otc.UserID)
-	c.App.Database.Insert(new(model.UserState), userState, "id")
+	if errs, err := database.ValidateStruct(roleAssignment); err != nil {
+		c.JSONResponse(ctx, model2.ResponseError{
+			Errors: errs,
+			Detail: fasthttp.StatusMessage(fasthttp.StatusUnprocessableEntity),
+		}, fasthttp.StatusUnprocessableEntity)
+		return
+	}
+
+	roleAssignment.SourceUserID.SetValid(c.API.Auth.ID)
+	err = c.App.Database.Insert(new(model.UserRoleAssignment), &roleAssignment, "id", "inserted_at")
+	if errs, err := database.ValidateConstraint(err, &roleAssignment); err != nil {
+		c.JSONResponse(ctx, model2.ResponseError{
+			Errors: errs,
+			Detail: fasthttp.StatusMessage(fasthttp.StatusUnprocessableEntity),
+		}, fasthttp.StatusUnprocessableEntity)
+		return
+	}
 
 	user := new(model.User)
 	c.App.Database.QueryRowWithModel(fmt.Sprintf("%s AND u.id = $1", user.Query(false)),
-		&user,
+		user,
 		phi.URLParam(ctx, "userID")).Force()
 
 	c.App.Cache.Set(fmt.Sprintf("%s:%d",
@@ -71,21 +81,7 @@ func (c ConfirmationController) Create(ctx *fasthttp.RequestCtx) {
 		BodyJson(user).
 		Do(context.TODO())
 
-	go func() {
-		c.App.Queue.Email.Publish(cmn.QueueEmailBody{
-			Subject:    "Welcome to Forgolang.com",
-			Recipients: []string{user.Email},
-			Type:       "welcome",
-			Template:   "welcome",
-			Params: struct {
-				UserName string
-			}{
-				UserName: user.Username,
-			},
-		}.ToJSON())
-	}()
-
 	c.JSONResponse(ctx, model2.ResponseSuccessOne{
-		Data: otc,
+		Data: roleAssignment,
 	}, fasthttp.StatusCreated)
 }

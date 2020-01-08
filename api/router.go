@@ -134,6 +134,14 @@ func NewRouter(api *API) *Router {
 					r.With(UserPolicy{API: api}.Show).Get("/", uC.Show)
 					r.With(UserPolicy{API: api}.Update).Put("/", uC.Update)
 					r.With(UserPolicy{API: api}.Delete).Delete("/", uC.Delete)
+
+					// Role assignment routes
+					r.With(UserRoleAssignmentPolicy{API: api}.Create).
+						Post("/role_assignment", UserRoleAssignmentController{API: api}.Create)
+					router.Routes["UserRoleAssignmentController"] = make(map[string][]string)
+					router.Routes["UserRoleAssignmentController"]["superadmin"] = []string{
+						"Create",
+					}
 				})
 				router.Routes["UserController"] = make(map[string][]string)
 				router.Routes["UserController"]["superadmin"] = []string{
