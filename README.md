@@ -14,7 +14,8 @@
    </a>
  </p>
 
-Forgolang.com's open-source forum system
+Forgolang.com's open-source discussion forum system.\
+But you can also use it as a small framework. :)
 
 ## Roadmap
  - [x] Core system
