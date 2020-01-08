@@ -36,9 +36,14 @@ func NewAuthorization(api *API) *Authorization {
 }
 
 // Apply module authorization
-func (m *Authorization) Apply(next phi.HandlerFunc, controller, method string, cb func() bool) phi.HandlerFunc {
+func (m *Authorization) Apply(next phi.HandlerFunc, controller, method string, cb func(ctx *fasthttp.RequestCtx) bool) phi.HandlerFunc {
 	return func(ctx *fasthttp.RequestCtx) {
-		if !m.gen(controller, method) || !cb() {
+		if m.Auth.Role == "superadmin" {
+			next(ctx)
+			return
+		}
+
+		if !m.gen(controller, method) || !cb(ctx) {
 			panic(pluggableError.New("forbidden",
 				fasthttp.StatusForbidden,
 				fasthttp.StatusMessage(fasthttp.StatusForbidden)))

@@ -1,6 +1,7 @@
 package database
 
 import (
+	"github.com/jmoiron/sqlx/types"
 	"github.com/shopspring/decimal"
 	"gopkg.in/guregu/null.v3/zero"
 	"reflect"
@@ -61,7 +62,8 @@ func getChanges(args ...interface{}) ([]Change, []string, map[string]interface{}
 	keys := args[6].([]string)
 	namedParams := args[7].(map[string]interface{})
 
-	if field2, ok := t2.FieldByName(field.Name); ok && field2.Tag.Get("db") != "" && field.Name != "ID" {
+	if field2, ok := t2.FieldByName(field.Name); ok && field2.Tag.Get("db") != "" && field.Name != "ID" &&
+		field2.Tag.Get("read_after_writes") != "true" {
 		var change Change
 
 		val := values.FieldByName(field.Name)
@@ -135,6 +137,18 @@ func getChanges(args ...interface{}) ([]Change, []string, map[string]interface{}
 					namedParams[change.Name] = change.String
 					val.Set(val2)
 				}
+				break
+			}
+		case reflect.Slice:
+			switch field.Type {
+			case reflect.TypeOf(types.JSONText{}):
+				change.Key = field.Name
+				change.Name = field.Tag.Get("db")
+				change.String = val2.Interface().(types.JSONText).String()
+				changes = append(changes, change)
+				keys = append(keys, change.Name)
+				namedParams[change.Name] = change.String
+				val.Set(val2)
 				break
 			}
 		case reflect.String:

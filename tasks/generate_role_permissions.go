@@ -20,13 +20,19 @@ import (
 	"fmt"
 	"forgolang_forum/cmn"
 	"forgolang_forum/database/model"
+	model2 "forgolang_forum/model"
 	"forgolang_forum/utils"
 	"strings"
 )
 
 // GenerateRolePermissions generate role permissions for api controller and methods
-func GenerateRolePermissions(app *cmn.App, args ...interface{}) error {
-	apiRoutes := args[0].(map[string]map[string][]string)
+func GenerateRolePermissions(app *cmn.App, args interface{}) error {
+	var apiRoutes map[string]map[string][]string
+	if app.Mode == model2.Test {
+		apiRoutes = args.(map[string]map[string][]string)
+	} else {
+		apiRoutes = GetArg("Router", args).(map[string]map[string][]string)
+	}
 
 	role := model.NewRole()
 	var roles []model.Role
@@ -57,7 +63,9 @@ func GenerateRolePermissions(app *cmn.App, args ...interface{}) error {
 			}
 			app.Cache.Set(strings.Join([]string{cmn.RedisKeys["routes"].(string), _r.Name}, ":"),
 				_r.ToJSON(), 0)
-			app.Logger.LogInfo(fmt.Sprintf("Generate %s route", _r.Name))
+			if app.Mode != model2.Test {
+				app.Logger.LogInfo(fmt.Sprintf("Generate %s route", _r.Name))
+			}
 			for k2, r2 := range r {
 				for _, r3 := range r2 {
 					rp := model.NewRolePermission(rolesMap[k2])
@@ -67,10 +75,12 @@ func GenerateRolePermissions(app *cmn.App, args ...interface{}) error {
 					if err != nil {
 						panic(err)
 					}
-					app.Logger.LogInfo(fmt.Sprintf("Generate %s: %s/%s permission",
-						k2,
-						rp.Controller,
-						rp.Method))
+					if app.Mode != model2.Test {
+						app.Logger.LogInfo(fmt.Sprintf("Generate %s: %s/%s permission",
+							k2,
+							rp.Controller,
+							rp.Method))
+					}
 				}
 			}
 		}

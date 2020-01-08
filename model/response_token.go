@@ -25,6 +25,7 @@ type ResponseToken struct {
 	ResponseInterface `json:"-"`
 	JWT               string `json:"jwt"`
 	UserID            int64  `json:"user_id"`
+	Role              string `json:"role"`
 }
 
 // ToJSON JWT auth struct to json string

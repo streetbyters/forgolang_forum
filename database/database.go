@@ -34,6 +34,7 @@ import (
 	"sort"
 	"strconv"
 	"strings"
+	"time"
 )
 
 // Tables db table enum type
@@ -58,6 +59,7 @@ const (
 
 // Database struct
 type Database struct {
+	SelfTX    bool
 	Config    *model.Config
 	Type      model.DB
 	DB        *sqlx.DB
@@ -138,6 +140,7 @@ func (r Result) Force() Result {
 func NewDB(config *model.Config, connURL ...string) (*Database, error) {
 	database := &Database{}
 	database.Config = config
+	database.SelfTX = false
 
 	switch config.DB {
 	case model.Postgres:
@@ -290,12 +293,15 @@ func newMigrations(db *Database) error {
 	var err error
 	result := Result{}
 	result = db.Query("SELECT * FROM " + string(tMigration) + " AS m ORDER BY id ASC")
-	var lastMigration []interface{}
+	var lastMigration interface{}
 	if len(result.Rows) > 0 {
-		lastMigration = result.Rows[:len(result.Rows)]
+		lastMigration = result.Rows[len(result.Rows)-1]
 	}
 
 	tx, err := db.DB.Beginx()
+	if err != nil {
+		return err
+	}
 	files := migrationFiles(db, "up")
 
 	for _, f := range files {
@@ -303,11 +309,13 @@ func newMigrations(db *Database) error {
 		case "01.postgres.up.sql":
 			break
 		default:
-			if len(lastMigration) > 0 {
-				if f.Number > int(lastMigration[1].(int64)) {
+			if lastMigration != nil {
+				ll := lastMigration.([]interface{})
+				if f.Number > int(ll[1].(int64)) {
 					_, err = tx.Exec(f.Data)
 					if err != nil {
 						tx.Rollback()
+						db.Error = err
 						break
 					}
 
@@ -321,6 +329,7 @@ func newMigrations(db *Database) error {
 				_, err = tx.Exec(f.Data)
 				if err != nil {
 					tx.Rollback()
+					db.Error = err
 					break
 				}
 
@@ -356,12 +365,14 @@ func dbError(db *Database, err error) Error {
 }
 
 func (d *Database) beginTx() *Database {
-	if d.Tx == nil {
+	if !d.SelfTX {
 		tx, err := d.DB.Beginx()
 		if err != nil {
 			d.Error = err
+			return d
 		}
 		d.Tx = tx
+		d.SelfTX = true
 		return d
 	}
 	d.Error = nil
@@ -369,18 +380,19 @@ func (d *Database) beginTx() *Database {
 }
 
 func (d *Database) rollback() *Database {
-	if d.Tx != nil {
+	if d.SelfTX {
 		if err := d.Tx.Rollback(); err != nil {
 			d.Error = err
 			return d
 		}
 	}
 	d.Error = nil
+	d.SelfTX = false
 	return d
 }
 
 func (d *Database) commit() *Database {
-	if d.Tx != nil {
+	if d.SelfTX {
 		if err := d.Tx.Commit(); err != nil {
 			d.Error = err
 			return d
@@ -388,6 +400,7 @@ func (d *Database) commit() *Database {
 		d.Tx = nil
 		d.Error = nil
 	}
+	d.SelfTX = false
 	return d
 }
 
@@ -412,7 +425,7 @@ func (d *Database) query(query string, target interface{}, params ...interface{}
 	var rows *sqlx.Rows
 	var err error
 
-	if d.Tx != nil {
+	if d.SelfTX {
 		rows, err = d.Tx.Queryx(query, params...)
 	} else {
 		rows, err = d.DB.Queryx(query, params...)
@@ -475,7 +488,7 @@ func (d *Database) queryRow(query string, target interface{}, params ...interfac
 	r := make(map[string]interface{})
 	var row *sqlx.Row
 
-	if d.Tx != nil {
+	if d.SelfTX {
 		row = d.Tx.QueryRowx(query, params...)
 	} else {
 		row = d.DB.QueryRowx(query, params...)
@@ -494,19 +507,31 @@ func (d *Database) queryRow(query string, target interface{}, params ...interfac
 	}
 
 	result.Rows = append(result.Rows, r)
+	result.Count = 1
 
 	return result
 }
 
+func newDB(d *Database) *Database {
+	nD := new(Database)
+	nD.DB = d.DB
+	nD.Config = d.Config
+	nD.Type = d.Type
+	nD.Logger = d.Logger
+
+	return nD
+}
+
 // Transaction database tx builder
 func (d *Database) Transaction(cb func(tx *Tx) error) *Database {
-	d.beginTx()
+	d2 := newDB(d)
+	d2.beginTx()
 	newTx := new(Tx)
-	newTx.DB = d
+	newTx.DB = d2
 	if cb(newTx) != nil {
-		return d.rollback()
+		return d2.rollback()
 	}
-	return d.commit()
+	return d2.commit()
 }
 
 // Select query builder by database type.
@@ -520,6 +545,17 @@ func (t *Tx) Select(table string, whereClause string) Result {
 
 // Insert query builder by database type
 func (d *Database) Insert(m DBInterface, data interface{}, keys ...string) error {
+	if reflect.ValueOf(m).MethodByName("Timestamps").IsValid() {
+		in := reflect.ValueOf(data).Elem().FieldByName("InsertedAt")
+		if in.IsValid() && in.CanSet() {
+			in.Set(reflect.ValueOf(time.Now().UTC()))
+		}
+		up := reflect.ValueOf(data).Elem().FieldByName("UpdatedAt")
+		if up.IsValid() && up.CanSet() {
+			up.Set(reflect.ValueOf(time.Now().UTC()))
+		}
+	}
+
 	_, c1, _ := GetChanges(m, data, "insert")
 
 	d.QueryType = "insert"
@@ -529,7 +565,7 @@ func (d *Database) Insert(m DBInterface, data interface{}, keys ...string) error
 	var stmt *sqlx.NamedStmt
 	var err error
 
-	if d.Tx != nil {
+	if d.SelfTX {
 		stmt, err = d.Tx.PrepareNamed(str)
 	} else {
 		stmt, err = d.DB.PrepareNamed(str)
@@ -541,19 +577,18 @@ func (d *Database) Insert(m DBInterface, data interface{}, keys ...string) error
 	}
 
 	if err := stmt.QueryRowx(data).StructScan(data); err != nil {
-		d.Error = err
-		if d.Tx != nil {
+		if d.SelfTX {
 			d.rollback()
 		}
+		d.Error = err
 		return err
 	}
 
 	if err := stmt.Close(); err != nil {
-		d.Error = err
-		if d.Tx != nil {
+		if d.SelfTX {
 			d.rollback()
 		}
-
+		d.Error = err
 		return err
 	}
 
@@ -564,6 +599,17 @@ func (d *Database) Insert(m DBInterface, data interface{}, keys ...string) error
 func (d *Database) Update(m DBInterface, data interface{}, whereClause *string, keys ...string) error {
 	id := reflect.ValueOf(reflect.ValueOf(m).Interface()).Elem().FieldByName("ID").Int()
 	reflect.ValueOf(data).Elem().FieldByName("ID").SetInt(id)
+
+	if reflect.ValueOf(m).MethodByName("Timestamps").IsValid() {
+		in := reflect.ValueOf(data).Elem().FieldByName("InsertedAt")
+		if in.IsValid() && in.CanSet() {
+			in.Set(reflect.ValueOf(m).Elem().FieldByName("InsertedAt"))
+		}
+		up := reflect.ValueOf(data).Elem().FieldByName("UpdatedAt")
+		if up.IsValid() && up.CanSet() {
+			up.Set(reflect.ValueOf(time.Now().UTC()))
+		}
+	}
 
 	_, c1, _ := GetChanges(m, data, "update")
 
@@ -581,7 +627,7 @@ func (d *Database) Update(m DBInterface, data interface{}, whereClause *string, 
 	var stmt *sqlx.NamedStmt
 	var err error
 
-	if d.Tx != nil {
+	if d.SelfTX {
 		stmt, err = d.Tx.PrepareNamed(str)
 	} else {
 		stmt, err = d.DB.PrepareNamed(str)
@@ -594,7 +640,7 @@ func (d *Database) Update(m DBInterface, data interface{}, whereClause *string, 
 
 	if err := stmt.QueryRowx(data).StructScan(data); err != nil {
 		d.Error = err
-		if d.Tx != nil {
+		if d.SelfTX {
 			d.rollback()
 		}
 		return err
@@ -602,7 +648,7 @@ func (d *Database) Update(m DBInterface, data interface{}, whereClause *string, 
 
 	if err := stmt.Close(); err != nil {
 		d.Error = err
-		if d.Tx != nil {
+		if d.SelfTX {
 			d.rollback()
 		}
 
@@ -617,7 +663,7 @@ func (d *Database) Delete(table string, whereClause string, args ...interface{})
 	result := Result{}
 	result.QueryType = "row"
 
-	if d.Tx != nil {
+	if d.SelfTX {
 		res, err := d.Tx.Exec(fmt.Sprintf("DELETE FROM %s", table)+" WHERE "+whereClause, args...)
 		result.Error = err
 		if err != nil {

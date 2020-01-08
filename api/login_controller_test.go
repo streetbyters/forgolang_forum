@@ -1,6 +1,7 @@
 package api
 
 import (
+	"forgolang_forum/database"
 	model2 "forgolang_forum/database/model"
 	"forgolang_forum/model"
 	"github.com/valyala/fasthttp"
@@ -16,7 +17,8 @@ func (s LoginControllerTest) SetupSuite() {
 }
 
 func (s LoginControllerTest) Test_PostLoginWithValidParams() {
-	user := model2.NewUser("123456")
+	pass := "123456"
+	user := model2.NewUser(&pass)
 	user.Username = "akdilsiz-login"
 	user.Email = "akdilsiz@tecpor.com"
 	userModel := new(model2.User)
@@ -28,12 +30,17 @@ func (s LoginControllerTest) Test_PostLoginWithValidParams() {
 	err = s.API.App.Database.Insert(new(model2.UserRoleAssignment), roleAssignment, "id")
 	s.Nil(err)
 
+	userState := model2.NewUserState(user.ID)
+	userState.State = database.Active
+	err = s.API.App.Database.Insert(new(model2.UserState), userState, "id")
+	s.Nil(err)
+
 	loginRequest := model.LoginRequest{
 		ID:       "akdilsiz-login",
 		Password: "123456",
 	}
 
-	resp := s.JSON(Post, "/api/v1/user/sign_in", loginRequest)
+	resp := s.JSON(Post, "/api/v1/auth/sign_in", loginRequest)
 
 	s.Equal(resp.Status, fasthttp.StatusCreated)
 	s.Equal(resp.Success.Data.(map[string]interface{})["user_id"], float64(user.ID))
@@ -47,7 +54,7 @@ func (s LoginControllerTest) Test_Should_422Error_PostLoginWithInvalidParams() {
 		ID: "akdilsiz",
 	}
 
-	resp := s.JSON(Post, "/api/v1/user/sign_in", loginRequest)
+	resp := s.JSON(Post, "/api/v1/auth/sign_in", loginRequest)
 
 	s.Equal(resp.Status, fasthttp.StatusUnprocessableEntity)
 
@@ -60,7 +67,7 @@ func (s LoginControllerTest) Test_Should_404Error_PostLoginWithValidParamsIfUser
 		Password: "123456",
 	}
 
-	resp := s.JSON(Post, "/api/v1/user/sign_in", loginRequest)
+	resp := s.JSON(Post, "/api/v1/auth/sign_in", loginRequest)
 
 	s.Equal(resp.Status, fasthttp.StatusNotFound)
 
@@ -69,7 +76,8 @@ func (s LoginControllerTest) Test_Should_404Error_PostLoginWithValidParamsIfUser
 }
 
 func (s LoginControllerTest) Test_Should_401Error_PostLoginWithValidParamsIfPasswordNotMatch() {
-	user := model2.NewUser("123456789")
+	pass := "123456789"
+	user := model2.NewUser(&pass)
 	user.Username = "akdilsiz2-notmatch"
 	user.Email = "akdilsiz2@tecpor.com"
 	userModel := new(model2.User)
@@ -81,12 +89,17 @@ func (s LoginControllerTest) Test_Should_401Error_PostLoginWithValidParamsIfPass
 	err = s.API.App.Database.Insert(new(model2.UserRoleAssignment), roleAssignment, "id")
 	s.Nil(err)
 
+	userState := model2.NewUserState(user.ID)
+	userState.State = database.Active
+	err = s.API.App.Database.Insert(new(model2.UserState), userState, "id")
+	s.Nil(err)
+
 	loginRequest := model.LoginRequest{
 		ID:       "akdilsiz2-notmatch",
 		Password: "12345",
 	}
 
-	resp := s.JSON(Post, "/api/v1/user/sign_in", loginRequest)
+	resp := s.JSON(Post, "/api/v1/auth/sign_in", loginRequest)
 
 	s.Equal(resp.Status, fasthttp.StatusUnauthorized)
 

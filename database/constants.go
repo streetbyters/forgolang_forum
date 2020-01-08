@@ -39,3 +39,45 @@ const (
 	// NotNullError not null violation error string
 	NotNullError Violation = "is not null"
 )
+
+// State for user status
+type State string
+
+const (
+	// Active user state
+	Active State = "active"
+	// Banned user state
+	Banned State = "banned"
+	// WaitForConfirmation user state
+	WaitForConfirmation State = "wait_for_confirmation"
+)
+
+// OTC one time code type
+type OTC string
+
+const (
+	// TFA two factory authentication codes
+	TFA OTC = "2fa"
+	// Confirmation code
+	Confirmation OTC = "confirmation"
+	// PasswordReset
+	PasswordReset OTC = "password_reset"
+)
+
+// TwoFactor user login
+type TwoFactor string
+
+const (
+	// APP authentication
+	APP TwoFactor = "app"
+	// Email authentication
+	Email TwoFactor = "email"
+)
+
+// TParty third-party app type
+type TParty string
+
+const (
+	// Auth app type for third-party
+	Auth TParty = "auth"
+)

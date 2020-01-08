@@ -14,22 +14,13 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package model
+package github
 
-// LoginRequest api login request structure
-type LoginRequest struct {
-	ID       string `json:"id" validate:"required"`
-	Password string `json:"password" validate:"required"`
-}
-
-// LoginResponse api login success response
-type LoginResponse struct {
-	PassphraseID int64  `json:"passphrase_id"`
-	UserID       int64  `json:"user_id"`
-	Passphrase   string `json:"passphrase"`
-}
-
-// TokenRequest api token request structure
-type TokenRequest struct {
-	Passphrase string `json:"passphrase" validate:"required"`
+// UserInformation github basic user information structure
+type UserInformation struct {
+	Bio         string `db:"bio" json:"bio"`
+	PublicRepos int `db:"public_repos" json:"public_repos"`
+	PublicGists int `db:"public_gists" json:"public_gists"`
+	Followers   int `db:"followers" json:"followers"`
+	Following   int `db:"following" json:"following"`
 }

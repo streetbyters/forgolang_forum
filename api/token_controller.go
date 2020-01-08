@@ -92,6 +92,7 @@ func (c TokenController) Create(ctx *fasthttp.RequestCtx) {
 		Data: model.ResponseToken{
 			JWT:    jwt,
 			UserID: user.ID,
+			Role:   role.Code,
 		},
 	}, http.StatusCreated)
 }

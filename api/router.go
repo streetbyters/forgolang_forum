@@ -23,7 +23,10 @@ import (
 	"fmt"
 	"forgolang_forum/model"
 	errors2 "github.com/akdilsiz/agente/errors"
+	"github.com/akdilsiz/limiterphi"
 	"github.com/fate-lovely/phi"
+	"github.com/ulule/limiter/v3"
+	sredis "github.com/ulule/limiter/v3/drivers/store/redis"
 	"github.com/valyala/fasthttp"
 	"net/http"
 	"os"
@@ -72,12 +75,23 @@ func NewRouter(api *API) *Router {
 
 	prefix = fmt.Sprintf("%s/%s", hostname, b64[0:10])
 
+	rate, _ := limiter.NewRateFromFormatted("50-S")
+	store, err := sredis.NewStoreWithOptions(api.App.Cache, limiter.StoreOptions{
+		Prefix:   "forgolang.com",
+		MaxRetry: 4,
+	})
+	if err != nil {
+		panic(err)
+	}
+	rateMiddleware := limiterphi.NewMiddleware(limiter.New(store, rate))
+
 	r := phi.NewRouter()
 
 	r.Use(router.requestID)
 	r.Use(router.recover)
 	r.Use(router.logger)
 	r.Use(router.cors)
+	r.Use(rateMiddleware.Handle)
 
 	r.NotFound(router.notFound)
 	r.MethodNotAllowed(router.methodNotAllowed)
@@ -85,13 +99,19 @@ func NewRouter(api *API) *Router {
 	hC := HomeController{API: api}
 	r.Get("/", hC.Index)
 
-	r.Route("/api/v1", func(r phi.Router) {
-		r.Route("/user", func(r phi.Router) {
-			lC := LoginController{API: api}
-			r.Post("/sign_in", lC.Create)
+	routerPrefix := strings.Join([]string{api.App.Config.Prefix, "v1"}, "/")
 
-			tC := TokenController{API: api}
-			r.Post("/token", tC.Create)
+	r.Route(routerPrefix, func(r phi.Router) {
+		// Auth routes
+		r.Route("/auth", func(r phi.Router) {
+			r.Post("/sign_in", LoginController{API: api}.Create)
+			r.Post("/token", TokenController{API: api}.Create)
+			r.Post("/register", RegisterController{API: api}.Create)
+			r.Post("/confirmation/{userID}/{code}", ConfirmationController{API: api}.Create)
+
+			// Third-party routes
+			r.Get("/github", AuthController{API: api}.Github)
+			r.Get("/github/callback", AuthController{API: api}.GithubCallback)
 		})
 
 		r.Group(func(r phi.Router) {
@@ -104,6 +124,30 @@ func NewRouter(api *API) *Router {
 			router.Routes["UploadController"]["superadmin"] = []string{
 				"Create",
 			}
+
+			//User Routes
+			r.Group(func(r phi.Router) {
+				uC := UserController{API: api}
+				r.With(UserPolicy{API: api}.Index).Get("/user", uC.Index)
+				r.With(UserPolicy{API: api}.Create).Post("/user", uC.Create)
+				r.Route("/user/{userID}", func(r phi.Router) {
+					r.With(UserPolicy{API: api}.Show).Get("/", uC.Show)
+					r.With(UserPolicy{API: api}.Update).Put("/", uC.Update)
+					r.With(UserPolicy{API: api}.Delete).Delete("/", uC.Delete)
+				})
+				router.Routes["UserController"] = make(map[string][]string)
+				router.Routes["UserController"]["superadmin"] = []string{
+					"Index",
+					"Show",
+					"Create",
+					"Update",
+					"Delete",
+				}
+				router.Routes["UserController"]["user"] = []string{
+					"Show",
+					"Update",
+				}
+			})
 
 			// Category routes
 			r.Group(func(r phi.Router) {

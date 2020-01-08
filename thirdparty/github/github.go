@@ -14,22 +14,37 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package model
+package github
 
-// LoginRequest api login request structure
-type LoginRequest struct {
-	ID       string `json:"id" validate:"required"`
-	Password string `json:"password" validate:"required"`
+import (
+	"forgolang_forum/model"
+	baseGithub "github.com/google/go-github/v28/github"
+	"golang.org/x/oauth2"
+	githuboauth "golang.org/x/oauth2/github"
+)
+
+// Github forgolang.com github integration structure
+type Github struct {
+	Client      *baseGithub.Client
+	OauthConfig *oauth2.Config
+	State       string
 }
 
-// LoginResponse api login success response
-type LoginResponse struct {
-	PassphraseID int64  `json:"passphrase_id"`
-	UserID       int64  `json:"user_id"`
-	Passphrase   string `json:"passphrase"`
+// NewGithub generate github structure
+func NewGithub(config *model.Config) *Github {
+	c := new(Github)
+	c.State = "forgolang.com"
+	c.OauthConfig = &oauth2.Config{
+		ClientID:     config.GithubClientID,
+		ClientSecret: config.GithubClientSecret,
+		Scopes:       []string{"read:user", "user:email", "user:follow"},
+		Endpoint:     githuboauth.Endpoint,
+	}
+
+	return c
 }
 
-// TokenRequest api token request structure
-type TokenRequest struct {
-	Passphrase string `json:"passphrase" validate:"required"`
+// URL generate oauth url
+func (c *Github) URL() string {
+	return c.OauthConfig.AuthCodeURL(c.State, oauth2.AccessTypeOnline)
 }

@@ -40,6 +40,27 @@ func (s CategoryControllerTest) Test_ListAllCategories() {
 	defaultLogger.LogInfo("List all categories")
 }
 
+func (s CategoryControllerTest) Test_ListAllCachedCategories() {
+	for i := 0; i < 50; i++ {
+		category := model.NewCategory()
+		category.Title = fmt.Sprintf("Category Cache %d", i)
+		category.Description = "Category Description"
+		category.Slug = slug.Make(category.Title)
+		err := s.API.App.Database.Insert(model.NewCategory(),
+			category,
+			"id", "inserted_at", "updated_at")
+		s.Nil(err)
+		s.API.App.Cache.SAdd(cmn.GetRedisKey("category", "all"), category.ToJSON())
+	}
+
+	resp := s.JSON(Get, "/api/v1/category", nil)
+
+	s.Equal(resp.Status, fasthttp.StatusOK)
+	s.Greater(resp.Success.TotalCount, int64(49))
+
+	defaultLogger.LogInfo("List all categories")
+}
+
 func (s CategoryControllerTest) Test_ShowCategoryWithGivenIdentifier() {
 	category := model.NewCategory()
 	category.Title = "Show Category"
