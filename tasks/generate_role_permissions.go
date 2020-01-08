@@ -63,7 +63,9 @@ func GenerateRolePermissions(app *cmn.App, args interface{}) error {
 			}
 			app.Cache.Set(strings.Join([]string{cmn.RedisKeys["routes"].(string), _r.Name}, ":"),
 				_r.ToJSON(), 0)
-			app.Logger.LogInfo(fmt.Sprintf("Generate %s route", _r.Name))
+			if app.Mode != model2.Test {
+				app.Logger.LogInfo(fmt.Sprintf("Generate %s route", _r.Name))
+			}
 			for k2, r2 := range r {
 				for _, r3 := range r2 {
 					rp := model.NewRolePermission(rolesMap[k2])
@@ -73,10 +75,12 @@ func GenerateRolePermissions(app *cmn.App, args interface{}) error {
 					if err != nil {
 						panic(err)
 					}
-					app.Logger.LogInfo(fmt.Sprintf("Generate %s: %s/%s permission",
-						k2,
-						rp.Controller,
-						rp.Method))
+					if app.Mode != model2.Test {
+						app.Logger.LogInfo(fmt.Sprintf("Generate %s: %s/%s permission",
+							k2,
+							rp.Controller,
+							rp.Method))
+					}
 				}
 			}
 		}

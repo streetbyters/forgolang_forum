@@ -18,6 +18,7 @@ package model
 
 import (
 	"forgolang_forum/database"
+	"gopkg.in/guregu/null.v3/zero"
 	"time"
 )
 
@@ -27,7 +28,7 @@ type UserState struct {
 	ID                   int64          `db:"id" json:"id"`
 	UserID               int64          `db:"user_id" json:"user_id" foreign:"fk_user_states_user_id" validate:"required"`
 	State                database.State `db:"state" json:"state"`
-	SourceUserID         int64          `db:"source_user_id" json:"source_user_id" foreign:"fk_user_states_source_user_id"`
+	SourceUserID         zero.Int       `db:"source_user_id" json:"source_user_id" foreign:"fk_user_states_source_user_id"`
 	InsertedAt           time.Time      `db:"inserted_at" json:"inserted_at"`
 }
 

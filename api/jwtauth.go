@@ -94,7 +94,7 @@ func (a JWTAuth) Verify(next phi.HandlerFunc) phi.HandlerFunc {
 	return func(ctx *fasthttp.RequestCtx) {
 		h := ctx.Request.Header.Peek("authorization")
 
-		if len(string(h)) < 7 && strings.ToUpper(string(h)[0:6]) != "BEARER" {
+		if len(string(h)) < 7 || strings.ToUpper(string(h)[0:6]) != "BEARER" {
 			a.API.JSONResponse(ctx, model.ResponseError{
 				Detail: "the request sent did not consist a valid token entry.",
 			}, fasthttp.StatusForbidden)

@@ -18,6 +18,7 @@ package api
 
 import (
 	"github.com/fate-lovely/phi"
+	"github.com/valyala/fasthttp"
 )
 
 // CategoryPolicy category authorization
@@ -28,21 +29,24 @@ type CategoryPolicy struct {
 
 // Create method for category api authorization
 func (p CategoryPolicy) Create(next phi.HandlerFunc) phi.HandlerFunc {
-	return p.API.Authorization.Apply(next, "CategoryController", "Create", func() bool {
-		return true
-	})
+	return p.API.Authorization.Apply(next, "CategoryController", "Create",
+		func(ctx *fasthttp.RequestCtx) bool {
+			return true
+		})
 }
 
 // Update method for category api authorization
 func (p CategoryPolicy) Update(next phi.HandlerFunc) phi.HandlerFunc {
-	return p.API.Authorization.Apply(next, "CategoryController", "Update", func() bool {
-		return true
-	})
+	return p.API.Authorization.Apply(next, "CategoryController", "Update",
+		func(ctx *fasthttp.RequestCtx) bool {
+			return true
+		})
 }
 
 // Delete method for category api authorization
 func (p CategoryPolicy) Delete(next phi.HandlerFunc) phi.HandlerFunc {
-	return p.API.Authorization.Apply(next, "CategoryController", "Delete", func() bool {
-		return true
-	})
+	return p.API.Authorization.Apply(next, "CategoryController", "Delete",
+		func(ctx *fasthttp.RequestCtx) bool {
+			return true
+		})
 }

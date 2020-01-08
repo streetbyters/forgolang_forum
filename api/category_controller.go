@@ -60,7 +60,7 @@ func (c CategoryController) Index(ctx *fasthttp.RequestCtx) {
 	}
 
 	c.App.Database.QueryWithModel(fmt.Sprintf(`
-		SELECT c.* FROM %s AS c ORDER BY $1 $1
+		SELECT c.* FROM %s AS c ORDER BY $1 $2
 	`, c.Model.TableName()),
 		&categories,
 		paginate.OrderField,

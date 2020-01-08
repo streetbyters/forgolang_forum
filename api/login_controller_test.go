@@ -40,7 +40,7 @@ func (s LoginControllerTest) Test_PostLoginWithValidParams() {
 		Password: "123456",
 	}
 
-	resp := s.JSON(Post, "/api/v1/user/sign_in", loginRequest)
+	resp := s.JSON(Post, "/api/v1/auth/sign_in", loginRequest)
 
 	s.Equal(resp.Status, fasthttp.StatusCreated)
 	s.Equal(resp.Success.Data.(map[string]interface{})["user_id"], float64(user.ID))
@@ -54,7 +54,7 @@ func (s LoginControllerTest) Test_Should_422Error_PostLoginWithInvalidParams() {
 		ID: "akdilsiz",
 	}
 
-	resp := s.JSON(Post, "/api/v1/user/sign_in", loginRequest)
+	resp := s.JSON(Post, "/api/v1/auth/sign_in", loginRequest)
 
 	s.Equal(resp.Status, fasthttp.StatusUnprocessableEntity)
 
@@ -67,7 +67,7 @@ func (s LoginControllerTest) Test_Should_404Error_PostLoginWithValidParamsIfUser
 		Password: "123456",
 	}
 
-	resp := s.JSON(Post, "/api/v1/user/sign_in", loginRequest)
+	resp := s.JSON(Post, "/api/v1/auth/sign_in", loginRequest)
 
 	s.Equal(resp.Status, fasthttp.StatusNotFound)
 
@@ -99,7 +99,7 @@ func (s LoginControllerTest) Test_Should_401Error_PostLoginWithValidParamsIfPass
 		Password: "12345",
 	}
 
-	resp := s.JSON(Post, "/api/v1/user/sign_in", loginRequest)
+	resp := s.JSON(Post, "/api/v1/auth/sign_in", loginRequest)
 
 	s.Equal(resp.Status, fasthttp.StatusUnauthorized)
 

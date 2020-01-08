@@ -39,7 +39,7 @@ func (s TokenControllerTest) Test_PostTokenWithValidParams() {
 
 	tokenRequest := model.TokenRequest{Passphrase: userPassphrase.Passphrase}
 
-	resp := s.JSON(Post, "/api/v1/user/token", tokenRequest)
+	resp := s.JSON(Post, "/api/v1/auth/token", tokenRequest)
 
 	s.Equal(resp.Status, fasthttp.StatusCreated)
 
@@ -68,7 +68,7 @@ func (s TokenControllerTest) Test_Shoul_404Error_PostTokenWithValidParamsIfNotEx
 
 	tokenRequest := model.TokenRequest{Passphrase: "userPassphrase.Passphrase"}
 
-	resp := s.JSON(Post, "/api/v1/user/token", tokenRequest)
+	resp := s.JSON(Post, "/api/v1/auth/token", tokenRequest)
 
 	s.Equal(resp.Status, fasthttp.StatusNotFound)
 
@@ -98,7 +98,7 @@ func (s TokenControllerTest) Test_Should_404Error_PostTokenWithValidParamsIfUser
 
 	tokenRequest := model.TokenRequest{Passphrase: userPassphrase.Passphrase}
 
-	resp := s.JSON(Post, "/api/v1/user/token", tokenRequest)
+	resp := s.JSON(Post, "/api/v1/auth/token", tokenRequest)
 
 	s.Equal(resp.Status, fasthttp.StatusNotFound)
 
@@ -129,7 +129,7 @@ func (s TokenControllerTest) Test_Should_404Error_PostTokenWithValidParamsIfPass
 
 	tokenRequest := model.TokenRequest{Passphrase: userPassphraseModel.Passphrase}
 
-	resp := s.JSON(Post, "/api/v1/user/token", tokenRequest)
+	resp := s.JSON(Post, "/api/v1/auth/token", tokenRequest)
 
 	s.Equal(resp.Status, fasthttp.StatusNotFound)
 	s.API.App.Logger.LogInfo("Should be 404 error post token with valid params " +
@@ -155,7 +155,7 @@ func (s TokenControllerTest) Test_Should_404Err_PostTokenWithValidParamsIfUserRo
 
 	tokenRequest := model.TokenRequest{Passphrase: userPassphrase.Passphrase}
 
-	resp := s.JSON(Post, "/api/v1/user/token", tokenRequest)
+	resp := s.JSON(Post, "/api/v1/auth/token", tokenRequest)
 
 	s.Equal(resp.Status, fasthttp.StatusNotFound)
 
