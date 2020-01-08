@@ -17,6 +17,7 @@
 package api
 
 import (
+	"forgolang_forum/cmn"
 	"forgolang_forum/database"
 	model2 "forgolang_forum/database/model"
 	"forgolang_forum/model"
@@ -45,6 +46,7 @@ func (c RegisterController) Create(ctx *fasthttp.RequestCtx) {
 	user := model2.NewUser(&registerRequest.Password)
 	user.Email = registerRequest.Email
 	user.Username = registerRequest.Username
+	user.IsActive = true
 	err := c.App.Database.Insert(new(model2.User),
 		user,
 		"id", "inserted_at", "updated_at")
@@ -56,7 +58,37 @@ func (c RegisterController) Create(ctx *fasthttp.RequestCtx) {
 		return
 	}
 
+	otc := model2.NewUserOneTimeCode(user.ID)
+	otc.Type = database.Confirmation
+	c.App.Database.Insert(new(model2.UserOneTimeCode), otc, "id")
+
+	userState := model2.NewUserState(user.ID)
+	userState.State = database.WaitForConfirmation
+	userState.SourceUserID.SetValid(user.ID)
+	c.App.Database.Insert(new(model2.UserState), userState, "id")
+
+	registerResponse := new(model.RegisterResponse)
+	registerResponse.UserID = user.ID
+	registerResponse.State = string(database.WaitForConfirmation)
+	registerResponse.InsertedAt = user.InsertedAt
+
+	go func() {
+		c.App.Queue.Email.Publish(cmn.QueueEmailBody{
+			Recipients: []string{user.Email},
+			Subject:    "Forgolang.com | Activation Required",
+			Type:       "confirmation",
+			Template:   "confirmation",
+			Params: struct {
+				UserID int64
+				Code   string
+			}{
+				UserID: user.ID,
+				Code:   otc.Code,
+			},
+		}.ToJSON())
+	}()
+
 	c.JSONResponse(ctx, model.ResponseSuccessOne{
-		Data: user,
+		Data: registerResponse,
 	}, fasthttp.StatusCreated)
 }

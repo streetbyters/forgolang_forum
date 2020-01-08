@@ -16,9 +16,20 @@
 
 package model
 
+import (
+	"time"
+)
+
 // RegisterRequest user register structure
 type RegisterRequest struct {
 	Username string `json:"username" validate:"required,gte=4,lte=24"`
 	Password string `json:"password" validate:"required"`
 	Email    string `json:"email" validate:"required,email"`
+}
+
+// RegisterResponse user register response structure
+type RegisterResponse struct {
+	UserID     int64     `json:"user_id"`
+	State      string    `json:"state"`
+	InsertedAt time.Time `json:"inserted_at"`
 }

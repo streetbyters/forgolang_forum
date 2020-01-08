@@ -105,7 +105,6 @@ func (c AuthController) GithubCallback(ctx *fasthttp.RequestCtx) {
 				thirdParty.ID)
 		} else {
 			if err := tx.DB.Insert(new(model2.User), user, "id", "inserted_at", "updated_at"); err != nil {
-				fmt.Println(err)
 				defaultLogger.LogError(err, "github user insert error")
 				return err
 			}
@@ -115,6 +114,13 @@ func (c AuthController) GithubCallback(ctx *fasthttp.RequestCtx) {
 		if currentUser.ID == int64(0) {
 			roleAssignment := model2.NewUserRoleAssignment(user.ID, 3)
 			if err := tx.DB.Insert(new(model2.UserRoleAssignment), roleAssignment, "id"); err != nil {
+				return err
+			}
+
+			userState := model2.NewUserState(user.ID)
+			userState.State = database.Active
+			userState.SourceUserID.SetValid(user.ID)
+			if err := tx.DB.Insert(new(model2.UserState), userState, "id"); err != nil {
 				return err
 			}
 		}
@@ -150,10 +156,10 @@ func (c AuthController) GithubCallback(ctx *fasthttp.RequestCtx) {
 
 	if db.Error != nil {
 		defaultLogger.LogError(err, fmt.Sprintf("github user get failed"))
-		ctx.Redirect("https://forgolang.com/login?type=github&status=failed", fasthttp.StatusTemporaryRedirect)
+		ctx.Redirect("https://forgolang.com/login?action=thirdy-party&type=github&status=failed", fasthttp.StatusTemporaryRedirect)
 		return
 	}
 
-	ctx.Redirect(fmt.Sprintf("https://forgolang.com/login?token=%s&type=github",
+	ctx.Redirect(fmt.Sprintf("https://forgolang.com/login?token=%s&action=third-party&type=github&status=success",
 		passphrase.Passphrase), fasthttp.StatusTemporaryRedirect)
 }

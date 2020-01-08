@@ -102,7 +102,7 @@ func (c UserController) Create(ctx *fasthttp.RequestCtx) {
 	}
 
 	user.PasswordDigest.SetValid(utils.HashPassword(user.Password, 11))
-	if user.Password == ""{
+	if user.Password == "" {
 		c.JSONResponse(ctx, model2.ResponseError{
 			Errors: map[string]string{
 				"password": "is not nil",

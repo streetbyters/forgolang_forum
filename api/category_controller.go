@@ -42,8 +42,7 @@ func (c CategoryController) Index(ctx *fasthttp.RequestCtx) {
 	var count int64
 	var categories []model.Category
 
-	if s, err := c.App.Cache.SMembers(cmn.GetRedisKey("category", "all")).Result();
-		err == nil && len(s) > 0 {
+	if s, err := c.App.Cache.SMembers(cmn.GetRedisKey("category", "all")).Result(); err == nil && len(s) > 0 {
 		for _, v := range s {
 			var c model.Category
 			json.Unmarshal([]byte(v), &c)

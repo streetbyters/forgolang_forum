@@ -28,7 +28,9 @@ func NewQueue(app *App) *Queue {
 }
 
 // StarAll start all queue channels
-func (q Queue) StartAll() {
+func (q Queue) StartAll() *Queue {
 	q.Email = NewEmail(&q)
 	go q.Email.Start()
+
+	return &q
 }

@@ -9,6 +9,7 @@ import (
 	"gopkg.in/guregu/null.v3"
 	html "html/template"
 	"io/ioutil"
+	"math/rand"
 	"reflect"
 	"regexp"
 	"strconv"
@@ -604,4 +605,18 @@ func Passkey() string {
 	}
 
 	return base64.StdEncoding.WithPadding(base64.StdPadding).EncodeToString(p)
+}
+
+// random string artifacts
+var seed = rand.New(rand.NewSource(time.Now().UnixNano()))
+var charset = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
+
+// RandomString
+func RandomString(length int) string {
+	b := make([]byte, length)
+	for i := range b {
+		b[i] = charset[seed.Intn(len(charset))]
+	}
+	return string(b)
+
 }

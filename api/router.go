@@ -106,6 +106,8 @@ func NewRouter(api *API) *Router {
 		r.Route("/auth", func(r phi.Router) {
 			r.Post("/sign_in", LoginController{API: api}.Create)
 			r.Post("/token", TokenController{API: api}.Create)
+			r.Post("/register", RegisterController{API: api}.Create)
+			r.Post("/confirmation/{userID}/{code}", ConfirmationController{API: api}.Create)
 
 			// Third-party routes
 			r.Get("/github", AuthController{API: api}.Github)

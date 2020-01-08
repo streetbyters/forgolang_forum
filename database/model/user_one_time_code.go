@@ -18,6 +18,7 @@ package model
 
 import (
 	"forgolang_forum/database"
+	"forgolang_forum/utils"
 	"time"
 )
 
@@ -33,7 +34,9 @@ type UserOneTimeCode struct {
 
 // NewUserOneTimeCode generate user 2fa code structure
 func NewUserOneTimeCode(userID int64) *UserOneTimeCode {
-	return &UserOneTimeCode{UserID: userID, Type: database.Confirmation}
+	return &UserOneTimeCode{UserID: userID,
+		Code: utils.RandomString(8),
+		Type: database.Confirmation}
 }
 
 // TableName user one time code database

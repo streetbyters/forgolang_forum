@@ -60,6 +60,8 @@ const (
 	TFA OTC = "2fa"
 	// Confirmation code
 	Confirmation OTC = "confirmation"
+	// PasswordReset
+	PasswordReset OTC = "password_reset"
 )
 
 // TwoFactor user login

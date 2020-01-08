@@ -302,7 +302,7 @@ func (s UserControllerTest) Test_DeleteUserWithGivenIdentifier() {
 }
 
 func (s UserControllerTest) Test_Should_404Err_DeleteUserWithGivenIdentifierIfNotExists() {
-	resp := s.JSON(Delete,"/api/v1/user/999999999", nil)
+	resp := s.JSON(Delete, "/api/v1/user/999999999", nil)
 
 	s.Equal(resp.Status, fasthttp.StatusNotFound)
 

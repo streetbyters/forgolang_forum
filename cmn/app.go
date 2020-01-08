@@ -106,7 +106,7 @@ func NewApp(config *model.Config, logger *utils.Logger) *App {
 		"one": "category",
 	}
 
-	app.Queue = NewQueue(app)
+	app.Queue = NewQueue(app).StartAll()
 	app.Github = github.NewGithub(config)
 
 	return app

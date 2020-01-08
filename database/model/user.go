@@ -70,6 +70,7 @@ func (d User) Timestamps() bool {
 	return true
 }
 
+// Query generate for user
 func (d User) Query(force bool) string {
 	roleAssignment := new(UserRoleAssignment)
 	role := new(Role)
