@@ -32,6 +32,9 @@ type User struct {
 	PasswordDigest       zero.String `db:"password_digest" json:"-"`
 	Password             string      `json:"password"`
 	Email                string      `db:"email" json:"email" unique:"users_email_unique_index" validate:"required,email"`
+	EmailHidden          bool        `db:"email_hidden" json:"email_hidden"`
+	Bio                  zero.String `db:"bio" json:"bio" validate:"lte=10240"`
+	Url                  zero.String `db:"url" json:"url" validate:"lte=200"`
 	IsActive             bool        `db:"is_active" json:"is_active"`
 	Avatar               zero.String `db:"avatar" json:"avatar"`
 	Role                 zero.String `db:"role" json:"role,omitempty"`
@@ -48,6 +51,7 @@ func NewUser(pwd *string) *User {
 	if pwd != nil {
 		return &User{
 			PasswordDigest: zero.StringFrom(utils.HashPassword(*pwd, 11)),
+			EmailHidden:    true,
 			IsActive:       true,
 		}
 	}

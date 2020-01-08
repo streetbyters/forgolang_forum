@@ -72,6 +72,10 @@ func (c RegisterController) Create(ctx *fasthttp.RequestCtx) {
 	registerResponse.State = string(database.WaitForConfirmation)
 	registerResponse.InsertedAt = user.InsertedAt
 
+	roleAssignment := model2.NewUserRoleAssignment(user.ID, 3)
+	roleAssignment.SourceUserID.SetValid(user.ID)
+	c.App.Database.Insert(new(model2.UserRoleAssignment), roleAssignment, "id")
+
 	go func() {
 		c.App.Queue.Email.Publish(cmn.QueueEmailBody{
 			Recipients: []string{user.Email},
