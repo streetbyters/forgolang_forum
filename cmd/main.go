@@ -190,19 +190,29 @@ func main() {
 func genSecretEnv() {
 	body := []byte(fmt.Sprintf(`SECRET_KEY=%s
 
-CDN_URL=
+AWS_SES_ACCESS_KEY_ID=%s
+AWS_SES_SECRET_ACCESS_KEY=%s
+AWS_SES_REGION=%s
+AWS_SES_SOURCE=%s
 
-AWS_SES_ACCESS_KEY_ID=
-AWS_SES_SECRET_ACCESS_KEY=
-AWS_SES_REGION=
-AWS_SES_SOURCE=
+AWS_S3_ACCESS_KEY_ID=%s
+AWS_S3_SECRET_ACCESS_KEY=%s
+AWS_S3_REGION=%s
+AWS_S3_BUCKET=%s
 
-AWS_S3_ACCESS_KEY_ID=
-AWS_S3_SECRET_ACCESS_KEY=
-AWS_S3_BUCKET=
-
-GITHUB_CLIENT_ID=
-GITHUB_CLIENT_SECRET=`, "asdasd"))
+GITHUB_CLIENT_ID=%s
+GITHUB_CLIENT_SECRET=%s`,
+os.Getenv("SECRET_KEY"),
+os.Getenv("AWS_SES_ACCESS_KEY_ID"),
+os.Getenv("AWS_SES_SECRET_ACCESS_KEY"),
+os.Getenv("AWS_SES_REGION"),
+os.Getenv("AWS_SES_SOURCE"),
+os.Getenv("AWS_S3_ACCESS_KEY_ID"),
+os.Getenv("AWS_S3_SECRET_ACCESS_KEY"),
+os.Getenv("AWS_S3_REGION"),
+os.Getenv("AWS_S3_BUCKET"),
+os.Getenv("GITHUB_CLIENT_ID"),
+os.Getenv("GITHUB_CLIENT_SECRET")))
 
 	var file *os.File
 	_, err := os.Stat(filepath.Join(appPath, "secret.env"))

@@ -1,0 +1,51 @@
+dist: bionic
+language: go
+
+go:
+  - 1.11.x
+
+env:
+  - GO111MODULE=on
+  global:
+    - PGPORT=5432
+
+git:
+  depth: 1
+
+addons:
+  postgresql: "11"
+  apt:
+    packages:
+      - rabbitmq-server
+      - postgresql-11
+      - postgresql-client-11
+
+services:
+  - rabbitmq
+  - postgresql
+  - redis-server
+  - elasticsearch
+
+before_install:
+  - sudo rabbitmqctl add_user local local
+  - sudo rabbitmqctl set_user_tags local administrator
+  - sudo rabbitmqctl set_permissions -p / local ".*" ".*" ".*"
+  - go get -t -v ./...
+  - go mod vendor
+
+notifications:
+  email: false
+
+before_script:
+  - psql -U postgres -c "create user forgolang login password '123456';"
+  - psql -U postgres -c "create database forgolang_test owner forgolang;"
+  - sleep 10
+
+script:
+  - go run ./cmd -genSecretEnv
+  - go run ./cmd -mode test -migrate -reset
+  - go run ./cmd -mode test -task -name GenerateBase
+  - go test -v -coverprofile=coverage.txt -covermode=atomic ./...
+
+after_success:
+  - bash <(curl -s https://codecov.io/bash)

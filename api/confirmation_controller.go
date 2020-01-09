@@ -59,7 +59,7 @@ func (c ConfirmationController) Create(ctx *fasthttp.RequestCtx) {
 
 	user := new(model.User)
 	c.App.Database.QueryRowWithModel(fmt.Sprintf("%s AND u.id = $1", user.Query(false)),
-		&user,
+		user,
 		phi.URLParam(ctx, "userID")).Force()
 
 	c.App.Cache.Set(fmt.Sprintf("%s:%d",
