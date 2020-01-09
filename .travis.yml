@@ -6,6 +6,8 @@ go:
 
 env:
   - GO111MODULE=on
+  global:
+    - PGPORT=5432
 
 git:
   depth: 1
