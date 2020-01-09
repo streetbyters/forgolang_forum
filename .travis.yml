@@ -5,26 +5,29 @@ go:
   - 1.11.x
 
 env:
-  global:
-    - PGPORT=5432
-    - GO111MODULE=on
+  - GO111MODULE=on
 
 git:
   depth: 1
 
 addons:
-  postgresql: "12"
   apt:
     packages:
       - rabbitmq-server
 
 services:
   - rabbitmq
-  - postgresql
   - redis-server
   - elasticsearch
 
 before_install:
+  - sudo service postgresql stop
+  - sudo apt install -yq --no-install-suggests --no-install-recommends postgresql-11 postgresql-client-11
+  - sed -e 's/^port.*/port = 5432/' /etc/postgresql/11/main/postgresql.conf > postgresql.conf
+  - sudo chown postgres postgresql.conf
+  - sudo mv postgresql.conf /etc/postgresql/11/main
+  - sudo cp /etc/postgresql/11/main/pg_hba.conf
+  - sudo service postgresql restart 11
   - sudo rabbitmqctl add_user local local
   - sudo rabbitmqctl set_user_tags local administrator
   - sudo rabbitmqctl set_permissions -p / local ".*" ".*" ".*"
@@ -35,6 +38,7 @@ notifications:
   email: false
 
 before_script:
+  - export PATH="/usr/lib/postgresql/11/bin:$PATH"
   - psql -U postgres -c "create user forgolang login password '123456';"
   - psql -U postgres -c "create database forgolang_test owner forgolang;"
   - sleep 10
