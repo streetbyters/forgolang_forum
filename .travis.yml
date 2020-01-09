@@ -11,9 +11,12 @@ git:
   depth: 1
 
 addons:
+  postgresql: "11"
   apt:
     packages:
       - rabbitmq-server
+      - postgresql-11
+      - postgresql-client-11
 
 services:
   - rabbitmq
@@ -32,8 +35,8 @@ notifications:
   email: false
 
 before_script:
-  - psql -c "create user forgolang login password '123456';" -U postgres
-  - psql -c "create database forgolang_test owner forgolang;" -U postgres
+  - psql -U postgres -c "create user forgolang login password '123456';"
+  - psql -U postgres -c "create database forgolang_test owner forgolang;"
   - sleep 10
 
 script:
