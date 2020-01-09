@@ -5,9 +5,9 @@ go:
   - 1.11.x
 
 env:
-  - GO111MODULE=on
   global:
     - PGPORT=5432
+    - GO111MODULE=on
 
 git:
   depth: 1
