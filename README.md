@@ -1,4 +1,10 @@
- <h1 align="center">Forgolang.com</h1>
+
+<p align="center">
+  <img height="200px" src="assets/forgolang.png">
+</p>
+
+ <h1 align="center">forgolang</h1>
+
  <p align="center">
    <a href="https://travis-ci.org/forgolang/forgolang_forum">
     <img src="https://travis-ci.org/forgolang/forgolang_forum.svg?branch=master"/>
