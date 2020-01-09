@@ -1,16 +1,16 @@
  <h1 align="center">Forgolang.com</h1>
  <p align="center">
-   <a href="https://travis-ci.org/akdilsiz/forgolang_forum">
-    <img src="https://travis-ci.org/akdilsiz/forgolang_forum.svg?branch=master"/>
+   <a href="https://travis-ci.org/forgolang/forgolang_forum">
+    <img src="https://travis-ci.org/forgolang/forgolang_forum.svg?branch=master"/>
    </a>
-   <a href="https://github.com/akdilsiz/forgolang_forum/blob/master/LICENSE">
-    <img src="https://img.shields.io/github/license/forgolang_forum/agente"/>
+   <a href="https://github.com/forgolang/forgolang_forum/blob/master/LICENSE">
+    <img src="https://img.shields.io/github/license/forgolang/forgolang_forum"/>
    </a>
-   <a href="https://codecov.io/gh/akdilsiz/forgolang_forum">
-     <img src="https://codecov.io/gh/akdilsiz/forgolang_forum/branch/master/graph/badge.svg" />
+   <a href="https://codecov.io/gh/forgolang/forgolang_forum">
+     <img src="https://codecov.io/gh/forgolang/forgolang_forum/branch/master/graph/badge.svg" />
    </a>
-   <a href="https://goreportcard.com/report/github.com/akdilsiz/forgolang_forum">
-    <img src="https://goreportcard.com/badge/github.com/akdilsiz/forgolang_forum"/>
+   <a href="https://goreportcard.com/report/github.com/forgolang/forgolang_forum">
+    <img src="https://goreportcard.com/badge/github.com/forgolang/forgolang_forum"/>
    </a>
  </p>
 
@@ -34,7 +34,7 @@ That's all for now. :)
 
 ## Development
 ```shell script
-git clone -b develop https://github.com/akdilsiz/forgolang_forum
+git clone -b develop https://github.com/forgolang/forgolang_forum
 
 go mod vendor
 
@@ -94,7 +94,7 @@ I would like to accept any contributions to make Forgolang.com better and featur
 
 ## LICENSE
 
-Copyright 2019 Abdulkadir DILSIZ
+Copyright 2019 Abdulkadir Dilsiz - Çağatay Yücelen
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
