@@ -41,6 +41,7 @@ import (
 	"strings"
 	"sync/atomic"
 	"testing"
+	"time"
 )
 
 var defaultLogger *utils.Logger
@@ -158,6 +159,12 @@ func NewSuite() *Suite {
 	db.Logger = logger
 	db.Reset = true
 	database.InstallDB(db)
+	ch := make(chan bool)
+	time.AfterFunc(time.Second * 2, func() {
+		ch<-true
+	})
+	<-ch
+
 	newApp := cmn.NewApp(config, logger)
 	newApp.Database = db
 	newApp.Mode = model.Test
