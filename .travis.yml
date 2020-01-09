@@ -39,8 +39,8 @@ before_script:
 script:
   - go run ./cmd -genSecretEnv
   - go run ./cmd -mode test -migrate -reset
-  - go run ./cmd -mode dev -task -name GenerateBase
-  - go run ./cmd -mode dev -task -name GenerateRolePermissions
+  - go run ./cmd -mode test -task -name GenerateBase
+  - go run ./cmd -mode test -task -name GenerateRolePermissions
   - go test -v -coverprofile=coverage.txt -covermode=atomic ./...
 
 after_success:
