@@ -19,6 +19,7 @@ package api
 
 import (
 	"context"
+	"encoding/base64"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -156,10 +157,14 @@ func (c AuthController) GithubCallback(ctx *fasthttp.RequestCtx) {
 
 	if db.Error != nil {
 		defaultLogger.LogError(err, fmt.Sprintf("github user get failed"))
-		ctx.Redirect("https://forgolang.com/login?action=thirdy-party&type=github&status=failed", fasthttp.StatusTemporaryRedirect)
+		ctx.Redirect(fmt.Sprintf("%s/auth/login?action=thirdy-party&type=github&status=failed",
+			c.App.Config.UIHost), fasthttp.StatusTemporaryRedirect)
 		return
 	}
 
-	ctx.Redirect(fmt.Sprintf("https://forgolang.com/login?token=%s&action=third-party&type=github&status=success",
-		passphrase.Passphrase), fasthttp.StatusTemporaryRedirect)
+	ctx.Redirect(fmt.Sprintf("%s/auth/login?passphrase=%s&passphrase_id=%d&action=third-party&type=github&status=success",
+		c.App.Config.UIHost,
+		base64.StdEncoding.EncodeToString([]byte(passphrase.Passphrase)),
+		passphrase.ID),
+		fasthttp.StatusTemporaryRedirect)
 }

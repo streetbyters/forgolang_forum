@@ -94,5 +94,5 @@ func (c TokenController) Create(ctx *fasthttp.RequestCtx) {
 			UserID: user.ID,
 			Role:   role.Code,
 		},
-	}, http.StatusCreated)
+	}, fasthttp.StatusCreated)
 }

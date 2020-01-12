@@ -24,7 +24,7 @@ func (s CategoryControllerTest) Test_ListAllCategories() {
 	for i := 0; i < 50; i++ {
 		category := model.NewCategory()
 		category.Title = fmt.Sprintf("Category %d", i)
-		category.Description = "Category Description"
+		category.Description.SetValid("Category Description")
 		category.Slug = slug.Make(category.Title)
 		err := s.API.App.Database.Insert(model.NewCategory(),
 			category,
@@ -44,7 +44,7 @@ func (s CategoryControllerTest) Test_ListAllCachedCategories() {
 	for i := 0; i < 50; i++ {
 		category := model.NewCategory()
 		category.Title = fmt.Sprintf("Category Cache %d", i)
-		category.Description = "Category Description"
+		category.Description.SetValid("Category Description")
 		category.Slug = slug.Make(category.Title)
 		err := s.API.App.Database.Insert(model.NewCategory(),
 			category,
@@ -64,7 +64,7 @@ func (s CategoryControllerTest) Test_ListAllCachedCategories() {
 func (s CategoryControllerTest) Test_ShowCategoryWithGivenIdentifier() {
 	category := model.NewCategory()
 	category.Title = "Show Category"
-	category.Description = "Show Category Description"
+	category.Description.SetValid("Show Category Description")
 	category.Slug = slug.Make("Show category")
 	err := s.API.App.Database.Insert(model.NewCategory(),
 		category,
@@ -89,7 +89,7 @@ func (s CategoryControllerTest) Test_ShowCategoryWithGivenIdentifier() {
 func (s CategoryControllerTest) Test_ShowCachedCategoryWithGivenIdentifier() {
 	category := model.NewCategory()
 	category.Title = "Show Category"
-	category.Description = "Show Category Description"
+	category.Description.SetValid("Show Category Description")
 	category.Slug = slug.Make("Show category 2")
 	err := s.API.App.Database.Insert(model.NewCategory(),
 		category,
@@ -127,7 +127,7 @@ func (s CategoryControllerTest) Test_Should_404Err_ShowCategoryWithGivenIdentifi
 func (s CategoryControllerTest) Test_CreateCategoryWithValidParams() {
 	category := model.NewCategory()
 	category.Title = "Create Category"
-	category.Description = "Category Description"
+	category.Description.SetValid("Category Description")
 	category.Slug = "sss"
 
 	resp := s.JSON(Post, "/api/v1/category", category)
@@ -152,7 +152,7 @@ func (s CategoryControllerTest) Test_CreateCategoryWithValidParams() {
 
 	s.Equal(cachedCategory.ID, int64(data["id"].(float64)))
 	s.Equal(cachedCategory.Title, data["title"])
-	s.Equal(cachedCategory.Description, data["description"])
+	s.Equal(cachedCategory.Description.String, data["description"])
 	s.Equal(cachedCategory.Slug, data["slug"])
 	s.Equal(cachedCategory.InsertedAt.Format(time.RFC3339Nano), data["inserted_at"])
 	s.Equal(cachedCategory.UpdatedAt.Format(time.RFC3339Nano), data["updated_at"])
@@ -162,7 +162,7 @@ func (s CategoryControllerTest) Test_CreateCategoryWithValidParams() {
 
 func (s CategoryControllerTest) Test_Shoul_422Err_CreateCategoryWithValidParams() {
 	category := model.NewCategory()
-	category.Description = "Category Description"
+	category.Description.SetValid("Category Description")
 
 	resp := s.JSON(Post, "/api/v1/category", category)
 
@@ -174,14 +174,14 @@ func (s CategoryControllerTest) Test_Shoul_422Err_CreateCategoryWithValidParams(
 func (s CategoryControllerTest) Test_Should_422Err_CreateCategoryWithValidParamsIfSlugNotUnique() {
 	category := model.NewCategory()
 	category.Title = "Create Category 2"
-	category.Description = "Category Description"
+	category.Description.SetValid("Category Description")
 	category.Slug = slug.Make(category.Title)
 	err := s.API.App.Database.Insert(new(model.Category), category, "id")
 	s.Nil(err)
 
 	category = model.NewCategory()
 	category.Title = "Create Category 2"
-	category.Description = "Category Description"
+	category.Description.SetValid("Category Description")
 	category.Slug = "sss"
 
 	resp := s.JSON(Post, "/api/v1/category", category)
@@ -195,7 +195,7 @@ func (s CategoryControllerTest) Test_Should_422Err_CreateCategoryWithValidParams
 func (s CategoryControllerTest) Test_UpdateCategoryWithGivenIdentifierAndValidParams() {
 	category := model.NewCategory()
 	category.Title = "Update Category"
-	category.Description = "Category Description"
+	category.Description.SetValid("Category Description")
 	category.Slug = slug.Make(category.Title)
 	err := s.API.App.Database.Insert(new(model.Category),
 		category,
@@ -204,7 +204,7 @@ func (s CategoryControllerTest) Test_UpdateCategoryWithGivenIdentifierAndValidPa
 
 	categoryR := model.NewCategory()
 	categoryR.Title = "Update Category / Edit"
-	categoryR.Description = "Category Description"
+	categoryR.Description.SetValid("Category Description")
 
 	resp := s.JSON(Put, fmt.Sprintf("/api/v1/category/%d", category.ID), categoryR)
 
@@ -230,7 +230,7 @@ func (s CategoryControllerTest) Test_UpdateCategoryWithGivenIdentifierAndValidPa
 
 	s.Equal(cachedCategory.ID, int64(data["id"].(float64)))
 	s.Equal(cachedCategory.Title, data["title"])
-	s.Equal(cachedCategory.Description, data["description"])
+	s.Equal(cachedCategory.Description.String, data["description"])
 	s.Equal(cachedCategory.Slug, data["slug"])
 	s.Equal(cachedCategory.InsertedAt.Format(time.RFC3339Nano), data["inserted_at"])
 	s.Equal(cachedCategory.UpdatedAt.Format(time.RFC3339Nano), data["updated_at"])
@@ -241,7 +241,7 @@ func (s CategoryControllerTest) Test_UpdateCategoryWithGivenIdentifierAndValidPa
 func (s CategoryControllerTest) Test_Should_422Error_UpdateCategoryWithGivenIdentifierAndInvalidParams() {
 	category := model.NewCategory()
 	category.Title = "Update Category 2"
-	category.Description = "Category Description"
+	category.Description.SetValid("Category Description")
 	category.Slug = slug.Make(category.Title)
 	err := s.API.App.Database.Insert(new(model.Category),
 		category,
@@ -249,7 +249,7 @@ func (s CategoryControllerTest) Test_Should_422Error_UpdateCategoryWithGivenIden
 	s.Nil(err)
 
 	categoryR := model.NewCategory()
-	categoryR.Description = "Category Description"
+	categoryR.Description.SetValid("Category Description")
 
 	resp := s.JSON(Put, fmt.Sprintf("/api/v1/category/%d", category.ID), categoryR)
 
@@ -262,7 +262,7 @@ func (s CategoryControllerTest) Test_Should_422Error_UpdateCategoryWithGivenIden
 func (s CategoryControllerTest) Test_Should_404Error_UpdateCategoryWithGivenIdentifierAndValidParamsIfNotExists() {
 	categoryR := model.NewCategory()
 	categoryR.Title = "Update Category 4 / Edit"
-	categoryR.Description = "Category Description"
+	categoryR.Description.SetValid("Category Description")
 
 	resp := s.JSON(Put, "/api/v1/category/9999999", categoryR)
 
@@ -275,7 +275,7 @@ func (s CategoryControllerTest) Test_Should_404Error_UpdateCategoryWithGivenIden
 func (s CategoryControllerTest) Test_Should_422Error_UpdateCategoryWithGivenIdentifierAndValidParamsIfSlugNotUnique() {
 	category := model.NewCategory()
 	category.Title = "Update Category 4 / Edit"
-	category.Description = "Category Description"
+	category.Description.SetValid("Category Description")
 	category.Slug = slug.Make(category.Title)
 	err := s.API.App.Database.Insert(new(model.Category),
 		category,
@@ -284,7 +284,7 @@ func (s CategoryControllerTest) Test_Should_422Error_UpdateCategoryWithGivenIden
 
 	category = model.NewCategory()
 	category.Title = "Update Category 3"
-	category.Description = "Category Description"
+	category.Description.SetValid("Category Description")
 	category.Slug = slug.Make(category.Title)
 	err = s.API.App.Database.Insert(new(model.Category),
 		category,
@@ -293,7 +293,7 @@ func (s CategoryControllerTest) Test_Should_422Error_UpdateCategoryWithGivenIden
 
 	categoryR := model.NewCategory()
 	categoryR.Title = "Update Category 4 / Edit"
-	categoryR.Description = "Category Description"
+	categoryR.Description.SetValid("Category Description")
 
 	resp := s.JSON(Put, fmt.Sprintf("/api/v1/category/%d", category.ID), categoryR)
 
@@ -306,7 +306,7 @@ func (s CategoryControllerTest) Test_Should_422Error_UpdateCategoryWithGivenIden
 func (s CategoryControllerTest) Test_DeleteCategoryWithGivenIdentifier() {
 	category := model.NewCategory()
 	category.Title = "Delete Category"
-	category.Description = "Category Description"
+	category.Description.SetValid("Category Description")
 	category.Slug = slug.Make(category.Title)
 	err := s.API.App.Database.Insert(new(model.Category),
 		category,

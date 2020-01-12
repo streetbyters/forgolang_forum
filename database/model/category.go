@@ -18,18 +18,19 @@ package model
 
 import (
 	"forgolang_forum/database"
+	"gopkg.in/guregu/null.v3/zero"
 	"time"
 )
 
 // Category base post artifacts
 type Category struct {
 	database.DBInterface `json:"-"`
-	ID                   int64     `db:"id" json:"id"`
-	Title                string    `db:"title" json:"title" validate:"required,gte=3,lte=128"`
-	Description          string    `db:"description" json:"description" validate:"lte=240"`
-	Slug                 string    `db:"slug" json:"slug" unique:"categories_slug_unique"`
-	InsertedAt           time.Time `db:"inserted_at" json:"inserted_at"`
-	UpdatedAt            time.Time `db:"updated_at" json:"updated_at"`
+	ID                   int64       `db:"id" json:"id"`
+	Title                string      `db:"title" json:"title" validate:"required,gte=3,lte=128"`
+	Description          zero.String `db:"description" json:"description" validate:"lte=240"`
+	Slug                 string      `db:"slug" json:"slug" unique:"categories_slug_unique"`
+	InsertedAt           time.Time   `db:"inserted_at" json:"inserted_at"`
+	UpdatedAt            time.Time   `db:"updated_at" json:"updated_at"`
 }
 
 // NewCategory generate category struct

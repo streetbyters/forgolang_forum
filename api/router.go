@@ -48,7 +48,7 @@ type Router struct {
 var (
 	prefix           string
 	reqID            uint64
-	allowHeaders     = "authorization"
+	allowHeaders     = "Accept, Content-Type, Content-Length, Accept-Encoding, X-CSRF-Token, Authorization"
 	allowMethods     = "HEAD,GET,POST,PUT,DELETE,OPTIONS"
 	allowOrigin      = "*"
 	allowCredentials = "true"
@@ -102,6 +102,7 @@ func NewRouter(api *API) *Router {
 	routerPrefix := strings.Join([]string{api.App.Config.Prefix, "v1"}, "/")
 
 	r.Route(routerPrefix, func(r phi.Router) {
+		r.Get("/heartbeat", HeartbeartController{API: api}.Show)
 		// Auth routes
 		r.Route("/auth", func(r phi.Router) {
 			r.Post("/sign_in", LoginController{API: api}.Create)
@@ -116,6 +117,18 @@ func NewRouter(api *API) *Router {
 
 		r.Group(func(r phi.Router) {
 			r.Use(api.JWTAuth.Verify)
+			// Sign out route
+			r.Post("/user/{userID}/sign_out/{passphraseID}", LogoutController{API: api}.Create)
+			router.Routes["LogoutController"] = make(map[string][]string)
+			router.Routes["LogoutController"]["superadmin"] = []string{
+				"Create",
+			}
+			router.Routes["LogoutController"]["moderator"] = []string{
+				"Create",
+			}
+			router.Routes["LogoutController"]["user"] = []string{
+				"Create",
+			}
 
 			uC := UploadController{API: api}
 
@@ -221,6 +234,10 @@ func (r Router) requestID(next phi.HandlerFunc) phi.HandlerFunc {
 		requestID := fmt.Sprintf("%s-%06d", prefix, id)
 		ctx.SetUserValue("requestID", requestID)
 		ctx.Response.Header.Add("x-request-id", requestID)
+		ctx.Response.Header.Set("Access-Control-Allow-Credentials", allowCredentials)
+		ctx.Response.Header.Set("Access-Control-Allow-Headers", allowHeaders)
+		ctx.Response.Header.Set("Access-Control-Allow-Methods", allowMethods)
+		ctx.Response.Header.Set("Access-Control-Allow-Origin", allowOrigin)
 		next(ctx)
 	}
 }
@@ -295,7 +312,7 @@ func (r Router) cors(next phi.HandlerFunc) phi.HandlerFunc {
 			ctx.Response.Header.Set("Access-Control-Allow-Methods", allowMethods)
 			ctx.Response.Header.Set("Access-Control-Allow-Origin", allowOrigin)
 			ctx.Response.Header.Set("Accept", "application/json")
-			ctx.Response.Header.Set("Accept", "multipart/form-data")
+			//ctx.Response.Header.Set("Accept", "multipart/form-data")
 
 			ctx.SetStatusCode(http.StatusNoContent)
 			return

@@ -104,6 +104,7 @@ func NewApp(config *model.Config, logger *utils.Logger) *App {
 	RedisKeys["category"] = map[string]string{
 		"all": "categories",
 		"one": "category",
+		"slug": "category:slug",
 	}
 
 	app.Queue = NewQueue(app).StartAll()
