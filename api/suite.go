@@ -41,7 +41,6 @@ import (
 	"strings"
 	"sync/atomic"
 	"testing"
-	"time"
 )
 
 var defaultLogger *utils.Logger
@@ -162,8 +161,6 @@ func NewSuite() *Suite {
 	err = database.InstallDB(db)
 	cmn.FailOnError(logger, err)
 
-	time.Sleep(2 * time.Second)
-	
 	newApp := cmn.NewApp(config, logger)
 	newApp.Database = db
 	newApp.Mode = model.Test
