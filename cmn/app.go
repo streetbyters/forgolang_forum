@@ -106,6 +106,11 @@ func NewApp(config *model.Config, logger *utils.Logger) *App {
 		"one": "category",
 		"slug": "category:slug",
 	}
+	RedisKeys["tag"] = map[string]string{
+		"all": "tags",
+		"one": "tag",
+		"count": "tag:count",
+	}
 
 	app.Queue = NewQueue(app).StartAll()
 	app.Github = github.NewGithub(config)
