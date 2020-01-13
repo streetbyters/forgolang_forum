@@ -176,6 +176,12 @@ func NewSuite() *Suite {
 	if err != nil {
 		panic(err)
 	}
+	err = tasks.GenerateBase(newApp, map[string]interface{}{
+		"Reset": true,
+	})
+	if err != nil {
+		panic(err)
+	}
 
 	return &Suite{API: newAPI}
 }

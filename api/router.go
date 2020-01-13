@@ -198,6 +198,11 @@ func NewRouter(api *API) *Router {
 					"Show",
 				}
 			})
+
+			// Search Routes
+			r.Route("/search", func(r phi.Router) {
+				r.Get("/user", SearchUserController{API: api}.Index)
+			})
 		})
 	})
 

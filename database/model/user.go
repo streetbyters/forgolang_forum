@@ -19,7 +19,7 @@ package model
 import (
 	"fmt"
 	"forgolang_forum/database"
-	"github.com/akdilsiz/agente/utils"
+	"forgolang_forum/utils"
 	"gopkg.in/guregu/null.v3/zero"
 	"time"
 )
