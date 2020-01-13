@@ -161,12 +161,9 @@ func NewSuite() *Suite {
 	db.Reset = true
 	err = database.InstallDB(db)
 	cmn.FailOnError(logger, err)
-	ch := make(chan bool)
-	time.AfterFunc(time.Second * 3, func() {
-		ch<-true
-	})
-	<-ch
 
+	time.Sleep(2 * time.Second)
+	
 	newApp := cmn.NewApp(config, logger)
 	newApp.Database = db
 	newApp.Mode = model.Test
