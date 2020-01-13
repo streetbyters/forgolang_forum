@@ -159,9 +159,10 @@ func NewSuite() *Suite {
 	cmn.FailOnError(logger, err)
 	db.Logger = logger
 	db.Reset = true
-	database.InstallDB(db)
+	err = database.InstallDB(db)
+	cmn.FailOnError(logger, err)
 	ch := make(chan bool)
-	time.AfterFunc(time.Second * 2, func() {
+	time.AfterFunc(time.Second * 3, func() {
 		ch<-true
 	})
 	<-ch

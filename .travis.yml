@@ -49,7 +49,7 @@ script:
   - go run ./cmd -genSecretEnv
   - go run ./cmd -mode test -migrate -reset
   - go run ./cmd -mode test -task -name GenerateBase
-  - go test -race -v -coverprofile=coverage.txt -covermode=atomic ./...
+  - go test -v -coverprofile=coverage.txt -covermode=atomic ./...
 
 after_success:
   - bash <(curl -s https://codecov.io/bash)
