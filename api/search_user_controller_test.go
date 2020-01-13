@@ -45,7 +45,7 @@ func (s SearchUserControllerTest) Test_SearchUserWithGivenQuery() {
 
 	ch := make(chan bool)
 
-	time.AfterFunc(time.Second * 3, func() {
+	time.AfterFunc(time.Second * 5, func() {
 		ch<-true
 	})
 
@@ -88,7 +88,7 @@ func (s SearchUserControllerTest) Test_SearchUserWithGivenMultiFieldAndEmailPara
 
 	ch := make(chan bool)
 
-	time.AfterFunc(time.Second * 3, func() {
+	time.AfterFunc(time.Second * 5, func() {
 		ch<-true
 	})
 
@@ -131,7 +131,7 @@ func (s SearchUserControllerTest) Test_SearchUserWithGivenMultiFieldAndUsernameP
 
 	ch := make(chan bool)
 
-	time.AfterFunc(time.Second * 3, func() {
+	time.AfterFunc(time.Second * 5, func() {
 		ch<-true
 	})
 
@@ -175,7 +175,7 @@ func (s SearchUserControllerTest) Test_SearchUserWithGivenMultiFieldAndIsActiveP
 
 	ch := make(chan bool)
 
-	time.AfterFunc(time.Second * 3, func() {
+	time.AfterFunc(time.Second * 5, func() {
 		ch<-true
 	})
 

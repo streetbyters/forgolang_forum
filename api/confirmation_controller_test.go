@@ -15,6 +15,14 @@ type ConfirmationControllerTest struct {
 
 func (s ConfirmationControllerTest) SetupSuite() {
 	SetupSuite(s.Suite)
+
+	ch := make(chan bool)
+
+	time.AfterFunc(time.Second * 2, func() {
+		ch<-true
+	})
+
+	<-ch
 }
 
 func (s ConfirmationControllerTest) Test_PostConfirmationWithGivenIdentifiers() {
