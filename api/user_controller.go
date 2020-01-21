@@ -153,7 +153,7 @@ func (c UserController) Update(ctx *fasthttp.RequestCtx) {
 		return
 	}
 
-	if c.Auth.Role != "superadmin" {
+	if c.GetAuthContext(ctx).Role != "superadmin" {
 		userRequest.IsActive = user.IsActive
 	}
 

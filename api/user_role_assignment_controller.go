@@ -57,7 +57,7 @@ func (c UserRoleAssignmentController) Create(ctx *fasthttp.RequestCtx) {
 		return
 	}
 
-	roleAssignment.SourceUserID.SetValid(c.API.Auth.ID)
+	roleAssignment.SourceUserID.SetValid(c.GetAuthContext(ctx).ID)
 	err = c.App.Database.Insert(new(model.UserRoleAssignment), &roleAssignment, "id", "inserted_at")
 	if errs, err := database.ValidateConstraint(err, &roleAssignment); err != nil {
 		c.JSONResponse(ctx, model2.ResponseError{

@@ -16,30 +16,10 @@
 
 package model
 
-import (
-	"forgolang_forum/database"
-	"time"
-)
-
-// Post discussion topics created by users
-type Post struct {
-	database.DBInterface `json:"-"`
-	ID                   int64     `db:"id" json:"id"`
-	AuthorID             int64     `db:"author_id" json:"author_id" foreign:"fk_posts_author_id" validate:"required"`
-	InsertedAt           time.Time `db:"inserted_at" json:"inserted_at"`
+// AuthContext jwt decoded auth information
+type AuthContext struct {
+	ID     int64
+	RoleID int64
+	Role   string
 }
 
-// NewPost generate post struct
-func NewPost(authorID int64) *Post {
-	return &Post{AuthorID: authorID}
-}
-
-// TableName post database
-func (m Post) TableName() string {
-	return "posts"
-}
-
-// ToJSON post structure to json string
-func (m Post) ToJSON() string {
-	return database.ToJSON(m)
-}

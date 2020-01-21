@@ -34,7 +34,7 @@ func (p LogoutPolicy) Create(next phi.HandlerFunc) phi.HandlerFunc {
 		func(ctx *fasthttp.RequestCtx) bool {
 			userID, _ := utils.ParseInt(phi.URLParam(ctx, "userID"), 10, 64)
 
-			if userID == p.Auth.ID {
+			if userID == p.GetAuthContext(ctx).ID {
 				return true
 			}
 

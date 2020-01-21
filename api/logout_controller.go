@@ -48,7 +48,7 @@ func (c LogoutController) Create(ctx *fasthttp.RequestCtx) {
 		userID).Force()
 
 	passphraseInvalidation.PassphraseID = passphrase.ID
-	passphraseInvalidation.SourceUserID.SetValid(c.Auth.ID)
+	passphraseInvalidation.SourceUserID.SetValid(c.GetAuthContext(ctx).ID)
 
 	c.App.Database.Insert(new(model.UserPassphraseInvalidation), &passphraseInvalidation,
 		"id")

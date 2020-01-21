@@ -115,12 +115,14 @@ func (a JWTAuth) Verify(next phi.HandlerFunc) phi.HandlerFunc {
 			}, fasthttp.StatusForbidden)
 			return
 		default:
-			a.API.Auth.ID = int64(claims["id"].(float64))
-			a.API.Auth.RoleID = int64(claims["role_id"].(float64))
-			a.API.Auth.Role = claims["role"].(string)
+			authContext := new(model.AuthContext)
+			authContext.ID = int64(claims["id"].(float64))
+			authContext.RoleID = int64(claims["role_id"].(float64))
+			authContext.Role = claims["role"].(string)
+
+			ctx.SetUserValue("AuthContext", authContext)
 
 			next(ctx)
-			break
 		}
 	}
 }

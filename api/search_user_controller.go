@@ -51,7 +51,7 @@ func (c SearchUserController) Index(ctx *fasthttp.RequestCtx) {
 
 	q := elastic.NewBoolQuery()
 
-	if b, _ := strconv.ParseBool(queryParams["multi"]); c.Auth.Role == "superadmin" && b {
+	if b, _ := strconv.ParseBool(queryParams["multi"]); c.GetAuthContext(ctx).Role == "superadmin" && b {
 		if b, _ := strconv.ParseBool(queryParams["is_active"]); b {
 			q = q.Must(elastic.NewTermQuery("is_active", true))
 		}
@@ -82,7 +82,7 @@ func (c SearchUserController) Index(ctx *fasthttp.RequestCtx) {
 		var u model.User
 		b, _ := v.Source.MarshalJSON()
 		json.Unmarshal(b, &u)
-		if c.Auth.Role != "superadmin" && u.EmailHidden {
+		if c.GetAuthContext(ctx).Role != "superadmin" && u.EmailHidden {
 			u.Email = "***"
 		}
 		users = append(users, u)
