@@ -41,20 +41,23 @@ func (c PostController) Index(ctx *fasthttp.RequestCtx) {
 	var posts []model.PostDEP
 	var postSlug model.PostSlug
 	var postDetail model.PostDetail
+	var user model.User
 	c.App.Database.QueryWithModel(fmt.Sprintf(`
 		SELECT 
-			p.id, p.author_id, p.inserted_at, ps.slug as slug, 
-			pd.title as title, pd.description as description, pd.content as content
+			p.id as id, p.author_id as author_id, u.username as author_username, 
+			p.inserted_at as inserted_at, ps.slug as slug, pd.title as title, 
+			pd.description as description, pd.content as content
 		FROM %s AS p
 		LEFT OUTER JOIN %s AS ps ON p.id = ps.post_id
 		LEFT OUTER JOIN %s AS ps2 ON ps.post_id = ps2.post_id AND ps.id < ps2.id
 		INNER JOIN %s AS pd ON p.id = pd.post_id
 		LEFT OUTER JOIN %s AS pd2 ON pd.post_id = pd2.post_id AND pd.id < pd2.id
+		INNER JOIN %s AS u ON p.author_id = u.id
 		WHERE ps2.id IS NULL AND pd2.id IS NULL
 		ORDER BY %s %s
 		LIMIt $1 OFFSET $2
 	`, c.Model.TableName(), postSlug.TableName(), postSlug.TableName(), postDetail.TableName(),
-		postDetail.TableName(),
+		postDetail.TableName(), user.TableName(),
 		paginate.OrderField,
 		paginate.OrderBy),
 		&posts,
@@ -83,21 +86,23 @@ func (c PostController) Show(ctx *fasthttp.RequestCtx) {
 	var post model.PostDEP
 	var postSlug model.PostSlug
 	var postDetail model.PostDetail
-
+	var user model.User
 	c.App.Database.QueryRowWithModel(fmt.Sprintf(`
 		SELECT 
-			p.id, p.author_id, p.inserted_at, ps.slug as slug, 
-			pd.title as title, pd.description as description, pd.content as content
+			p.id as id, p.author_id as author_id, u.username as author_username, 
+			p.inserted_at as inserted_at, ps.slug as slug, pd.title as title, 
+			pd.description as description, pd.content as content
 		FROM %s AS p
-		INNER JOIN %s AS ps ON p.id = ps.post_id
+		LEFT OUTER JOIN %s AS ps ON p.id = ps.post_id
 		LEFT OUTER JOIN %s AS ps2 ON ps.post_id = ps2.post_id AND ps.id < ps2.id
 		INNER JOIN %s AS pd ON p.id = pd.post_id
 		LEFT OUTER JOIN %s AS pd2 ON pd.post_id = pd2.post_id AND pd.id < pd2.id
-		WHERE ps2.id IS NULL AND pd2.id IS NULL AND (p.id = $1 OR ps.slug = $1)
-	`, post.TableName(), postSlug.TableName(), postSlug.TableName(), postDetail.TableName(),
-		postDetail.TableName()),
+		INNER JOIN %s AS u ON p.author_id = u.id
+		WHERE ps2.id IS NULL AND pd2.id IS NULL AND (p.id::text = $1::text OR ps.slug = $1)
+	`, c.Model.TableName(), postSlug.TableName(), postSlug.TableName(), postDetail.TableName(),
+		postDetail.TableName(), user.TableName()),
 		&post,
-		phi.URLParam(ctx, "postID"))
+		phi.URLParam(ctx, "postID")).Force()
 
 	c.JSONResponse(ctx, model2.ResponseSuccessOne{
 		Data: post,
@@ -119,8 +124,8 @@ func (c PostController) Create(ctx *fasthttp.RequestCtx) {
 	}
 
 	post := new(model.Post)
-	postSlug := model.NewPostSlug(post.ID, c.GetAuthContext(ctx).ID)
-	postDetail := model.NewPostDetail(post.ID, c.GetAuthContext(ctx).ID)
+	postSlug := model.NewPostSlug(0, c.GetAuthContext(ctx).ID)
+	postDetail := model.NewPostDetail(0, c.GetAuthContext(ctx).ID)
 
 	var err error
 	var errs map[string]string
@@ -131,15 +136,18 @@ func (c PostController) Create(ctx *fasthttp.RequestCtx) {
 			return err
 		}
 
+		postSlug.PostID = post.ID
 		postSlug.Slug = slug.Make(postReq.Title.String)
 		err = tx.DB.Insert(new(model.PostSlug), postSlug, "id")
 		if errs, err = database.ValidateConstraint(err, postSlug); err != nil {
 			return err
 		}
+		postReq.Slug.SetValid(postSlug.Slug)
 
 		postDetail.Title = postReq.Title.String
 		postDetail.Description = postReq.Description
 		postDetail.Content = postReq.Content.String
+		postDetail.PostID = post.ID
 		err = tx.DB.Insert(new(model.PostDetail), postDetail, "id")
 		if errs, err = database.ValidateConstraint(err, postDetail); err != nil {
 			return err
@@ -164,6 +172,7 @@ func (c PostController) Create(ctx *fasthttp.RequestCtx) {
 	}, fasthttp.StatusCreated)
 }
 
+// Delete post with given identifier
 func (c PostController) Delete(ctx *fasthttp.RequestCtx) {
 	var post model.Post
 	c.App.Database.Delete(post.TableName(), "id = $1",

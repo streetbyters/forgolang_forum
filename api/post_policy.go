@@ -56,9 +56,9 @@ func (p PostPolicy) getPost(ctx *fasthttp.RequestCtx) *model.Post {
 		SELECT 
 			p.id, p.author_id, p.inserted_at
 		FROM %s AS p
-		INNER JOIN %s AS ps ON p.id = ps.post_id
+		LEFT OUTER JOIN %s AS ps ON p.id = ps.post_id
 		LEFT OUTER JOIN %s AS ps2 ON ps.post_id = ps2.post_id AND ps.id < ps2.id
-		WHERE ps2.id IS NULL AND (p.id = $1 OR ps.slug = $1)
+		WHERE ps2.id IS NULL AND (p.id::text = $1::text OR ps.slug = $1)
 	`, post.TableName(), postSlug.TableName(), postSlug.TableName()),
 		&post,
 		phi.URLParam(ctx, "postID"))

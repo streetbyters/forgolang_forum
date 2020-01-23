@@ -209,15 +209,15 @@ func NewRouter(api *API) *Router {
 					r.With(PostPolicy{API: api}.Delete).Delete("/", pC.Delete)
 				})
 				router.Routes["PostController"] = make(map[string][]string)
-				router.Routes["CategoryController"]["superadmin"] = []string{
+				router.Routes["PostController"]["superadmin"] = []string{
 					"Create",
 					"Delete",
 				}
-				router.Routes["CategoryController"]["moderator"] = []string{
+				router.Routes["PostController"]["moderator"] = []string{
 					"Create",
 					"Delete",
 				}
-				router.Routes["CategoryController"]["user"] = []string{
+				router.Routes["PostController"]["user"] = []string{
 					"Create",
 					"Delete",
 				}
