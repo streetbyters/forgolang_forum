@@ -5,11 +5,7 @@ go:
   - 1.11.x
 
 env:
-  global:
-    - GO111MODULE=on
-    - PGPORT=5432
-    - PGUSER=postgres
-    - PGHOST=localhost
+  - GO111MODULE=on
 
 git:
   depth: 1
@@ -23,14 +19,9 @@ services:
   - rabbitmq
   - redis-server
   - elasticsearch
+  - postgresql
 
 before_install:
-  - sudo service postgresql stop
-  - sudo apt remove --purge -y postgresql*
-  - sudo apt install -yq --no-install-suggests --no-install-recommends postgresql-11 postgresql-client-11
-  - sudo sed -i -e '/local.*peer/s/postgres/all/' -e 's/peer\|md5/trust/g' /etc/postgresql/*/main/pg_hba.conf
-  - sudo service postgresql restart
-  - sleep 1
   - sudo rabbitmqctl add_user local local
   - sudo rabbitmqctl set_user_tags local administrator
   - sudo rabbitmqctl set_permissions -p / local ".*" ".*" ".*"
