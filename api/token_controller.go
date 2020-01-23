@@ -22,7 +22,6 @@ import (
 	model2 "forgolang_forum/database/model"
 	"forgolang_forum/model"
 	"github.com/valyala/fasthttp"
-	"net/http"
 )
 
 // TokenController user authentication token controller
@@ -39,8 +38,8 @@ func (c TokenController) Create(ctx *fasthttp.RequestCtx) {
 	if errs, err := database.ValidateStruct(tokenRequest); err != nil {
 		c.JSONResponse(ctx, model.ResponseError{
 			Errors: errs,
-			Detail: http.StatusText(http.StatusUnprocessableEntity),
-		}, http.StatusUnprocessableEntity)
+			Detail: fasthttp.StatusMessage(fasthttp.StatusUnprocessableEntity),
+		}, fasthttp.StatusUnprocessableEntity)
 		return
 	}
 

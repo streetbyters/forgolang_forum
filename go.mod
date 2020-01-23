@@ -7,7 +7,6 @@ require (
 	github.com/akdilsiz/limiterphi v0.0.0-20200107225320-8366c0e10dfb
 	github.com/aws/aws-sdk-go v1.27.0
 	github.com/dgrijalva/jwt-go v3.2.0+incompatible
-	github.com/fasthttp/websocket v1.4.1 // indirect
 	github.com/fate-lovely/phi v0.0.0-20171026043140-ee6510b82038
 	github.com/go-redis/redis v6.15.6+incompatible
 	github.com/go-resty/resty/v2 v2.1.0
@@ -19,7 +18,6 @@ require (
 	github.com/lib/pq v1.3.0
 	github.com/olivere/elastic/v7 v7.0.10
 	github.com/rs/zerolog v1.17.2
-	github.com/savsgio/gotils v0.0.0-20190925070755-524bc4f47500 // indirect
 	github.com/shopspring/decimal v0.0.0-20191130220710-360f2bc03045
 	github.com/spf13/viper v1.6.1
 	github.com/streadway/amqp v0.0.0-20190827072141-edfb9018d271

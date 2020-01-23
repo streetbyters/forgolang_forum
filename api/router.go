@@ -28,7 +28,6 @@ import (
 	"github.com/ulule/limiter/v3"
 	sredis "github.com/ulule/limiter/v3/drivers/store/redis"
 	"github.com/valyala/fasthttp"
-	"net/http"
 	"os"
 	"strconv"
 	"strings"
@@ -246,14 +245,14 @@ func (r Router) notFound(ctx *fasthttp.RequestCtx) {
 	r.API.JSONResponse(ctx, model.ResponseError{
 		Errors: nil,
 		Detail: "not found",
-	}, http.StatusNotFound)
+	}, fasthttp.StatusNotFound)
 }
 
 func (r Router) methodNotAllowed(ctx *fasthttp.RequestCtx) {
 	r.API.JSONResponse(ctx, model.ResponseError{
 		Errors: nil,
 		Detail: "method not allowed",
-	}, http.StatusMethodNotAllowed)
+	}, fasthttp.StatusMethodNotAllowed)
 }
 
 // Reference: https://github.com/go-chi/chi/blob/master/middleware/request_id.go
@@ -304,8 +303,8 @@ func (r Router) recover(next phi.HandlerFunc) phi.HandlerFunc {
 				r.API.App.Logger.LogError(err, "router recover")
 				r.API.JSONResponse(ctx, model.ResponseError{
 					Errors: nil,
-					Detail: http.StatusText(http.StatusInternalServerError),
-				}, http.StatusInternalServerError)
+					Detail: fasthttp.StatusMessage(fasthttp.StatusInternalServerError),
+				}, fasthttp.StatusInternalServerError)
 				return
 			}
 		}()
@@ -343,7 +342,7 @@ func (r Router) cors(next phi.HandlerFunc) phi.HandlerFunc {
 			ctx.Response.Header.Set("Accept", "application/json")
 			//ctx.Response.Header.Set("Accept", "multipart/form-data")
 
-			ctx.SetStatusCode(http.StatusNoContent)
+			ctx.SetStatusCode(fasthttp.StatusNoContent)
 			return
 		}
 		next(ctx)
