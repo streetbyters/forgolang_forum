@@ -41,9 +41,11 @@ import (
 	"strings"
 	"sync/atomic"
 	"testing"
+	"time"
 )
 
 var defaultLogger *utils.Logger
+var newAPI *API
 
 // Suite application test structure
 type Suite struct {
@@ -93,6 +95,8 @@ type TestResponse struct {
 	Other        interface{}
 	Status       int
 }
+
+var id int32 = 1
 
 // NewSuite build test application
 func NewSuite() *Suite {
@@ -154,17 +158,22 @@ func NewSuite() *Suite {
 		GithubClientSecret: viper.GetString("GITHUB_CLIENT_SECRET"),
 	}
 
+	if newAPI != nil {
+		newAPI.App.Cache.FlushDB()
+		return &Suite{API: newAPI}
+	}
+
 	db, err := database.NewDB(config)
 	cmn.FailOnError(logger, err)
+	newApp := cmn.NewApp(config, logger)
+	newApp.Database = db
+	newApp.Mode = model.Test
 	db.Logger = logger
 	db.Reset = true
 	err = database.InstallDB(db)
 	cmn.FailOnError(logger, err)
 
-	newApp := cmn.NewApp(config, logger)
-	newApp.Database = db
-	newApp.Mode = model.Test
-	newAPI := NewAPI(newApp)
+	newAPI = NewAPI(newApp)
 
 	newApp.Cache.FlushDB()
 	err = tasks.GenerateRolePermissions(newApp, newAPI.Router.Routes)
@@ -211,6 +220,13 @@ func TearDownSuite(s *Suite) {
 	roleAssignment := new(model2.UserRoleAssignment)
 	s.API.App.Database.QueryRow(fmt.Sprintf("DELETE FROM %s WHERE id > 0",
 		roleAssignment.TableName()))
+	_, err := s.API.App.Database.DB.Exec("SELECT truncate_tables($1)", s.API.App.Config.DBUser)
+	cmn.FailOnError(s.API.App.Logger, err)
+	ch := make(chan bool)
+	time.AfterFunc(time.Second*2, func() {
+		ch <- true
+	})
+	<-ch
 }
 
 var counter int64
