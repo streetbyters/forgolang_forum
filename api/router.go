@@ -206,6 +206,16 @@ func NewRouter(api *API) *Router {
 				r.Route("/post/{postID}", func(r phi.Router) {
 					r.Get("/", pC.Show)
 					r.With(PostPolicy{API: api}.Delete).Delete("/", pC.Delete)
+
+					psC := PostSlugController{API: api}
+					r.With(PostSlugPolicy{API: api}.Create).Post("/slug", psC.Create)
+
+					pdC := PostDetailController{API: api}
+					r.With(PostDetailPolicy{API: api}.Create).Post("/detail", pdC.Create)
+
+					pcaC := PostCategoryAssignmentController{API: api}
+					r.With(PostCategoryAssignmentPolicy{API: api}.Create).Post("/category_assignment",
+						pcaC.Create)
 				})
 				router.Routes["PostController"] = make(map[string][]string)
 				router.Routes["PostController"]["superadmin"] = []string{
@@ -219,6 +229,30 @@ func NewRouter(api *API) *Router {
 				router.Routes["PostController"]["user"] = []string{
 					"Create",
 					"Delete",
+				}
+				router.Routes["PostSlugController"] = make(map[string][]string)
+				router.Routes["PostSlugController"]["superadmin"] = []string{
+					"Create",
+				}
+				router.Routes["PostDetailController"] = make(map[string][]string)
+				router.Routes["PostDetailController"]["superadmin"] = []string{
+					"Create",
+				}
+				router.Routes["PostDetailController"]["moderator"] = []string{
+					"Create",
+				}
+				router.Routes["PostDetailController"]["user"] = []string{
+					"Create",
+				}
+				router.Routes["PostCategoryAssignmentController"] = make(map[string][]string)
+				router.Routes["PostCategoryAssignmentController"]["superadmin"] = []string{
+					"Create",
+				}
+				router.Routes["PostCategoryAssignmentController"]["moderator"] = []string{
+					"Create",
+				}
+				router.Routes["PostCategoryAssignmentController"]["user"] = []string{
+					"Create",
 				}
 			})
 

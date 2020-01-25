@@ -217,9 +217,6 @@ func SetupSuite(s *Suite) {}
 
 // TearDownSuite after suite processes
 func TearDownSuite(s *Suite) {
-	roleAssignment := new(model2.UserRoleAssignment)
-	s.API.App.Database.QueryRow(fmt.Sprintf("DELETE FROM %s WHERE id > 0",
-		roleAssignment.TableName()))
 	_, err := s.API.App.Database.DB.Exec("SELECT truncate_tables($1)", s.API.App.Config.DBUser)
 	cmn.FailOnError(s.API.App.Logger, err)
 	ch := make(chan bool)

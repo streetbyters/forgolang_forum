@@ -17,6 +17,8 @@
 package api
 
 import (
+	"context"
+	"errors"
 	"fmt"
 	"forgolang_forum/cmn"
 	"forgolang_forum/database"
@@ -25,6 +27,7 @@ import (
 	"github.com/fate-lovely/phi"
 	"github.com/gosimple/slug"
 	"github.com/valyala/fasthttp"
+	"strconv"
 )
 
 // PostController discussions api controller
@@ -128,11 +131,25 @@ func (c PostController) Create(ctx *fasthttp.RequestCtx) {
 	postDetail := model.NewPostDetail(0, c.GetAuthContext(ctx).ID)
 
 	var err error
-	var errs map[string]string
+	errs := make(map[string]string)
 	c.App.Database.Transaction(func(tx *database.Tx) error {
 		post.AuthorID = c.GetAuthContext(ctx).ID
 		err = tx.DB.Insert(new(model.Post), post, "id")
 		if errs, err = database.ValidateConstraint(err, post); err != nil {
+			return err
+		}
+
+		result := c.App.Database.QueryRow(fmt.Sprintf(`
+			SELECT * FROM %s AS ps
+			LEFT OUTER JOIN %s AS ps2 ON ps.post_id = ps2.post_id AND ps.id < ps2.id
+			WHERE ps2.id IS NULL and ps.slug = $1
+		`, postSlug.TableName(), postSlug.TableName()),
+			slug.Make(postReq.Title.String))
+		if result.Count > 0 {
+			err = errors.New("slug has been already taken")
+			// TODO: error field!!!
+			errs["slug"] = "has been already taken"
+			//fmt.Println(errs)
 			return err
 		}
 
@@ -166,6 +183,12 @@ func (c PostController) Create(ctx *fasthttp.RequestCtx) {
 
 	postReq.ID = post.ID
 	postReq.InsertedAt = post.InsertedAt
+
+	c.App.ElasticClient.Index().
+		Index("posts").
+		Id(strconv.FormatInt(post.ID, 10)).
+		BodyJson(postReq).
+		Do(context.TODO())
 
 	c.JSONResponse(ctx, model2.ResponseSuccessOne{
 		Data: postReq,

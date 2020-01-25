@@ -41,14 +41,14 @@ func (p PostPolicy) Create(next phi.HandlerFunc) phi.HandlerFunc {
 func (p PostPolicy) Delete(next phi.HandlerFunc) phi.HandlerFunc {
 	return p.API.Authorization.Apply(next, "PostController", "Delete",
 		func(ctx *fasthttp.RequestCtx) bool {
-			if post := p.getPost(ctx); post != nil && post.AuthorID == p.GetAuthContext(ctx).ID {
+			if post := p.GetPost(ctx); post != nil && post.AuthorID == p.GetAuthContext(ctx).ID {
 				return true
 			}
 			return false
 		})
 }
 
-func (p PostPolicy) getPost(ctx *fasthttp.RequestCtx) *model.Post {
+func (p PostPolicy) GetPost(ctx *fasthttp.RequestCtx) *model.Post {
 	var post model.Post
 	var postSlug model.PostSlug
 

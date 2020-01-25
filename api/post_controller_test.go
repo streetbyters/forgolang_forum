@@ -187,6 +187,31 @@ func (s PostControllerTest) Test_Should_422Err_CreatePostWithInvalidParams() {
 	defaultLogger.LogInfo("Should 422 error create post with invalid params")
 }
 
+func (s PostControllerTest) Test_Should_422Err_CreatePostWithValidParamsIfSlugNotUnique() {
+	post := model.NewPost(s.Auth.User.ID)
+	err := s.API.App.Database.Insert(new(model.Post), post, "id")
+	s.Nil(err)
+
+	postSlug := model.NewPostSlug(post.ID, s.Auth.User.ID)
+	postSlug.Slug = slug.Make("Post title slug")
+	err = s.API.App.Database.Insert(new(model.PostSlug), postSlug, "id")
+	s.Nil(err)
+
+	postDep := new(model.PostDEP)
+	postDep.Title.SetValid("Post title slug")
+	postDep.Content.SetValid("Post content")
+	postDep.Description.SetValid("Post description")
+
+	response := s.JSON(Post, "/api/v1/post", postDep)
+
+	s.Equal(response.Status, fasthttp.StatusUnprocessableEntity)
+	data, _ := response.Error.Errors.(map[string]interface{})
+	s.Equal(data["slug"], "has been already taken")
+
+	defaultLogger.LogInfo("Should be 422 error create post with valid params " +
+		"if slug has been already taken")
+}
+
 func (s PostControllerTest) Test_DeletePostWithGivenIdentifier() {
 	post := model.NewPost(s.Auth.User.ID)
 	err := s.API.App.Database.Insert(new(model.Post), post, "id")
