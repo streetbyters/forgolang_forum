@@ -21,7 +21,7 @@ func (s CategoryPolicyTest) Test_Should_403Error_CreateCategoryWithValidParamsAn
 
 	category := model.NewCategory()
 	category.Title = "Category"
-	category.Description = "Description"
+	category.Description.SetValid("Description")
 
 	resp := s.JSON(Post, "/api/v1/category", category)
 
@@ -36,14 +36,14 @@ func (s CategoryPolicyTest) Test_Should_UpdateCategoryWithValidParamsAndModerato
 
 	category := model.NewCategory()
 	category.Title = "Category / Edit"
-	category.Description = "Description"
+	category.Description.SetValid("Description")
 	category.Slug = slug.Make(category.Title)
 	err := s.API.App.Database.Insert(new(model.Category), category, "id")
 	s.Nil(err)
 
 	categoryR := model.NewCategory()
 	categoryR.Title = "Title / Edit"
-	categoryR.Description = "Description / Edit"
+	categoryR.Description.SetValid("Description / Edit")
 
 	resp := s.JSON(Put, fmt.Sprintf("/api/v1/category/%d", category.ID), categoryR)
 
@@ -57,14 +57,14 @@ func (s CategoryPolicyTest) Test_Should_403Error_UpdateCategoryWithValidParamsAn
 	UserAuth(s.Suite, "user")
 
 	category := model.NewCategory()
-	category.Title = "Category"
-	category.Description = "Description"
+	category.Title = "Category 23"
+	category.Description.SetValid("Description")
 	category.Slug = slug.Make(category.Title)
 	err := s.API.App.Database.Insert(new(model.Category), category, "id")
 	s.Nil(err)
 
 	category = model.NewCategory()
-	category.Title = "Title"
+	category.Title = "Title 234"
 
 	resp := s.JSON(Put, fmt.Sprintf("/api/v1/category/%d", category.ID), category)
 
@@ -78,8 +78,8 @@ func (s CategoryPolicyTest) Test_Should_403Error_DeleteCategoryWithGivenIdentifi
 	UserAuth(s.Suite, "moderator")
 
 	category := model.NewCategory()
-	category.Title = "Category 2"
-	category.Description = "Description"
+	category.Title = "Category 2435"
+	category.Description.SetValid("Description")
 	category.Slug = slug.Make(category.Title)
 	err := s.API.App.Database.Insert(new(model.Category), category, "id")
 	s.Nil(err)

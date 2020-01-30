@@ -28,7 +28,6 @@ import (
 	"github.com/ulule/limiter/v3"
 	sredis "github.com/ulule/limiter/v3/drivers/store/redis"
 	"github.com/valyala/fasthttp"
-	"net/http"
 	"os"
 	"strconv"
 	"strings"
@@ -48,7 +47,7 @@ type Router struct {
 var (
 	prefix           string
 	reqID            uint64
-	allowHeaders     = "authorization"
+	allowHeaders     = "Accept, Content-Type, Content-Length, Accept-Encoding, X-CSRF-Token, Authorization"
 	allowMethods     = "HEAD,GET,POST,PUT,DELETE,OPTIONS"
 	allowOrigin      = "*"
 	allowCredentials = "true"
@@ -102,6 +101,7 @@ func NewRouter(api *API) *Router {
 	routerPrefix := strings.Join([]string{api.App.Config.Prefix, "v1"}, "/")
 
 	r.Route(routerPrefix, func(r phi.Router) {
+		r.Get("/heartbeat", HeartbeartController{API: api}.Show)
 		// Auth routes
 		r.Route("/auth", func(r phi.Router) {
 			r.Post("/sign_in", LoginController{API: api}.Create)
@@ -116,6 +116,18 @@ func NewRouter(api *API) *Router {
 
 		r.Group(func(r phi.Router) {
 			r.Use(api.JWTAuth.Verify)
+			// Sign out route
+			r.Post("/user/{userID}/sign_out/{passphraseID}", LogoutController{API: api}.Create)
+			router.Routes["LogoutController"] = make(map[string][]string)
+			router.Routes["LogoutController"]["superadmin"] = []string{
+				"Create",
+			}
+			router.Routes["LogoutController"]["moderator"] = []string{
+				"Create",
+			}
+			router.Routes["LogoutController"]["user"] = []string{
+				"Create",
+			}
 
 			uC := UploadController{API: api}
 
@@ -185,6 +197,69 @@ func NewRouter(api *API) *Router {
 					"Show",
 				}
 			})
+
+			// Post Routes
+			r.Group(func(r phi.Router) {
+				pC := PostController{API: api}
+				r.Get("/post", pC.Index)
+				r.With(PostPolicy{API: api}.Create).Post("/post", pC.Create)
+				r.Route("/post/{postID}", func(r phi.Router) {
+					r.Get("/", pC.Show)
+					r.With(PostPolicy{API: api}.Delete).Delete("/", pC.Delete)
+
+					psC := PostSlugController{API: api}
+					r.With(PostSlugPolicy{API: api}.Create).Post("/slug", psC.Create)
+
+					pdC := PostDetailController{API: api}
+					r.With(PostDetailPolicy{API: api}.Create).Post("/detail", pdC.Create)
+
+					pcaC := PostCategoryAssignmentController{API: api}
+					r.With(PostCategoryAssignmentPolicy{API: api}.Create).Post("/category_assignment",
+						pcaC.Create)
+				})
+				router.Routes["PostController"] = make(map[string][]string)
+				router.Routes["PostController"]["superadmin"] = []string{
+					"Create",
+					"Delete",
+				}
+				router.Routes["PostController"]["moderator"] = []string{
+					"Create",
+					"Delete",
+				}
+				router.Routes["PostController"]["user"] = []string{
+					"Create",
+					"Delete",
+				}
+				router.Routes["PostSlugController"] = make(map[string][]string)
+				router.Routes["PostSlugController"]["superadmin"] = []string{
+					"Create",
+				}
+				router.Routes["PostDetailController"] = make(map[string][]string)
+				router.Routes["PostDetailController"]["superadmin"] = []string{
+					"Create",
+				}
+				router.Routes["PostDetailController"]["moderator"] = []string{
+					"Create",
+				}
+				router.Routes["PostDetailController"]["user"] = []string{
+					"Create",
+				}
+				router.Routes["PostCategoryAssignmentController"] = make(map[string][]string)
+				router.Routes["PostCategoryAssignmentController"]["superadmin"] = []string{
+					"Create",
+				}
+				router.Routes["PostCategoryAssignmentController"]["moderator"] = []string{
+					"Create",
+				}
+				router.Routes["PostCategoryAssignmentController"]["user"] = []string{
+					"Create",
+				}
+			})
+
+			// Search Routes
+			r.Route("/search", func(r phi.Router) {
+				r.Get("/user", SearchUserController{API: api}.Index)
+			})
 		})
 	})
 
@@ -204,14 +279,14 @@ func (r Router) notFound(ctx *fasthttp.RequestCtx) {
 	r.API.JSONResponse(ctx, model.ResponseError{
 		Errors: nil,
 		Detail: "not found",
-	}, http.StatusNotFound)
+	}, fasthttp.StatusNotFound)
 }
 
 func (r Router) methodNotAllowed(ctx *fasthttp.RequestCtx) {
 	r.API.JSONResponse(ctx, model.ResponseError{
 		Errors: nil,
 		Detail: "method not allowed",
-	}, http.StatusMethodNotAllowed)
+	}, fasthttp.StatusMethodNotAllowed)
 }
 
 // Reference: https://github.com/go-chi/chi/blob/master/middleware/request_id.go
@@ -221,6 +296,10 @@ func (r Router) requestID(next phi.HandlerFunc) phi.HandlerFunc {
 		requestID := fmt.Sprintf("%s-%06d", prefix, id)
 		ctx.SetUserValue("requestID", requestID)
 		ctx.Response.Header.Add("x-request-id", requestID)
+		ctx.Response.Header.Set("Access-Control-Allow-Credentials", allowCredentials)
+		ctx.Response.Header.Set("Access-Control-Allow-Headers", allowHeaders)
+		ctx.Response.Header.Set("Access-Control-Allow-Methods", allowMethods)
+		ctx.Response.Header.Set("Access-Control-Allow-Origin", allowOrigin)
 		next(ctx)
 	}
 }
@@ -258,8 +337,8 @@ func (r Router) recover(next phi.HandlerFunc) phi.HandlerFunc {
 				r.API.App.Logger.LogError(err, "router recover")
 				r.API.JSONResponse(ctx, model.ResponseError{
 					Errors: nil,
-					Detail: http.StatusText(http.StatusInternalServerError),
-				}, http.StatusInternalServerError)
+					Detail: fasthttp.StatusMessage(fasthttp.StatusInternalServerError),
+				}, fasthttp.StatusInternalServerError)
 				return
 			}
 		}()
@@ -295,9 +374,9 @@ func (r Router) cors(next phi.HandlerFunc) phi.HandlerFunc {
 			ctx.Response.Header.Set("Access-Control-Allow-Methods", allowMethods)
 			ctx.Response.Header.Set("Access-Control-Allow-Origin", allowOrigin)
 			ctx.Response.Header.Set("Accept", "application/json")
-			ctx.Response.Header.Set("Accept", "multipart/form-data")
+			//ctx.Response.Header.Set("Accept", "multipart/form-data")
 
-			ctx.SetStatusCode(http.StatusNoContent)
+			ctx.SetStatusCode(fasthttp.StatusNoContent)
 			return
 		}
 		next(ctx)

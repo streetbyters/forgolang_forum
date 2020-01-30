@@ -33,10 +33,11 @@ But you can also use it as a small framework. :)
 That's all for now. :)
 
 ## Requirements
- - Go > 1.11
+ - Go > 1.11.x
  - PostgreSQL
  - Redis 
  - RabbitMQ
+ - Elasticsearch 7.x
 
 ## Development
 ```shell script

@@ -21,7 +21,7 @@ import (
 	"forgolang_forum/database"
 	model2 "forgolang_forum/database/model"
 	"forgolang_forum/model"
-	"github.com/akdilsiz/agente/utils"
+	"forgolang_forum/utils"
 	"github.com/valyala/fasthttp"
 )
 

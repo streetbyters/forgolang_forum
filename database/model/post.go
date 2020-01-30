@@ -18,6 +18,7 @@ package model
 
 import (
 	"forgolang_forum/database"
+	"gopkg.in/guregu/null.v3/zero"
 	"time"
 )
 
@@ -42,4 +43,18 @@ func (m Post) TableName() string {
 // ToJSON post structure to json string
 func (m Post) ToJSON() string {
 	return database.ToJSON(m)
+}
+
+// PostDEP all post fields
+type PostDEP struct {
+	database.DBInterface `json:"-"`
+	ID                   int64                     `db:"id" json:"id"`
+	AuthorID             int64                     `db:"author_id" json:"author_id" validate:"required"`
+	AuthorUsername       zero.String               `db:"author_username" json:"author_username,omitempty"`
+	Slug                 zero.String               `db:"slug" json:"slug,omitempty"`
+	Title                zero.String               `db:"title" json:"title,omitempty" validate:"required,gte=3,lte=120"`
+	Description          zero.String               `db:"description" json:"description,omitempty"`
+	Content              zero.String               `db:"content" json:"content,omitempty" validate:"required,gte=20,lte=10240"`
+	CategoryAssignments  *[]PostCategoryAssignment `db:"category_assignments" json:"category_assignments,omitempty"`
+	InsertedAt           time.Time                 `db:"inserted_at" json:"inserted_at"`
 }

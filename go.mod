@@ -23,7 +23,7 @@ require (
 	github.com/streadway/amqp v0.0.0-20190827072141-edfb9018d271
 	github.com/stretchr/testify v1.4.0
 	github.com/ulule/limiter/v3 v3.3.3
-	github.com/valyala/fasthttp v1.7.1
+	github.com/valyala/fasthttp v1.8.0
 	golang.org/x/crypto v0.0.0-20191227163750-53104e6ec876
 	golang.org/x/oauth2 v0.0.0-20190226205417-e64efc72b421
 	gopkg.in/go-playground/validator.v9 v9.31.0

@@ -40,7 +40,7 @@ func (p UserPolicy) Index(next phi.HandlerFunc) phi.HandlerFunc {
 func (p UserPolicy) Show(next phi.HandlerFunc) phi.HandlerFunc {
 	return p.API.Authorization.Apply(next, "UserController", "Show",
 		func(ctx *fasthttp.RequestCtx) bool {
-			if i, err := strconv.ParseInt(phi.URLParam(ctx, "userID"), 10, 64); err == nil && i == p.Auth.ID {
+			if i, err := strconv.ParseInt(phi.URLParam(ctx, "userID"), 10, 64); err == nil && i == p.GetAuthContext(ctx).ID {
 				return true
 			}
 			return false
@@ -59,7 +59,7 @@ func (p UserPolicy) Create(next phi.HandlerFunc) phi.HandlerFunc {
 func (p UserPolicy) Update(next phi.HandlerFunc) phi.HandlerFunc {
 	return p.API.Authorization.Apply(next, "UserController", "Update",
 		func(ctx *fasthttp.RequestCtx) bool {
-			if i, err := strconv.ParseInt(phi.URLParam(ctx, "userID"), 10, 64); err == nil && i == p.Auth.ID {
+			if i, err := strconv.ParseInt(phi.URLParam(ctx, "userID"), 10, 64); err == nil && i == p.GetAuthContext(ctx).ID {
 				return true
 			}
 			return false

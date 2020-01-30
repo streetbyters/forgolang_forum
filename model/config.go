@@ -22,6 +22,7 @@ type Config struct {
 	Path               string `json:"path"`
 	Mode               MODE   `json:"mode"`
 	Prefix             string `json:"prefix"`
+	UIHost             string `json:"ui_host"`
 	Host               string `json:"host"`
 	Port               int    `json:"port"`
 	SecretKey          string `json:"secret_key"`

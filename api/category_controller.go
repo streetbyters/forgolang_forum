@@ -59,15 +59,21 @@ func (c CategoryController) Index(ctx *fasthttp.RequestCtx) {
 	}
 
 	c.App.Database.QueryWithModel(fmt.Sprintf(`
-		SELECT c.* FROM %s AS c ORDER BY $1 $2
-	`, c.Model.TableName()),
-		&categories,
+		SELECT c.* FROM %s AS c ORDER BY %s %s
+	`, c.Model.TableName(),
 		paginate.OrderField,
-		paginate.OrderBy)
+		paginate.OrderBy),
+		&categories)
 
 	c.App.Database.DB.Get(&count,
 		fmt.Sprintf("SELECT count(*) FROM %s", c.Model.TableName()))
 
+	var cats []interface{}
+	for _, ca := range categories {
+		cats = append(cats, ca.ToJSON())
+	}
+	c.App.Cache.SAdd(cmn.GetRedisKey("category", "all"), cats...)
+	
 	c.JSONResponse(ctx, model2.ResponseSuccess{
 		Data:       categories,
 		TotalCount: count,
@@ -99,6 +105,9 @@ func (c CategoryController) Show(ctx *fasthttp.RequestCtx) {
 	c.App.Cache.Set(fmt.Sprintf("%s:%d",
 		cmn.GetRedisKey("category", "one"),
 		category.ID), category.ToJSON(), 0)
+	c.App.Cache.Set(fmt.Sprintf("%s:%s",
+		cmn.GetRedisKey("category", "slug"),
+		category.Slug), category.ToJSON(), 0)
 
 	c.JSONResponse(ctx, model2.ResponseSuccessOne{
 		Data: category,
@@ -133,6 +142,9 @@ func (c CategoryController) Create(ctx *fasthttp.RequestCtx) {
 		cmn.GetRedisKey("category", "one"),
 		category.ID), category.ToJSON(), 0).Err()
 	c.App.Cache.SAdd(cmn.GetRedisKey("category", "all"), category.ToJSON())
+	c.App.Cache.Set(fmt.Sprintf("%s:%s",
+		cmn.GetRedisKey("category", "slug"),
+		category.Slug), category.ToJSON(), 0)
 
 	c.JSONResponse(ctx, model2.ResponseSuccessOne{
 		Data: category,
@@ -178,6 +190,10 @@ func (c CategoryController) Update(ctx *fasthttp.RequestCtx) {
 	c.App.Cache.Set(fmt.Sprintf("%s:%d",
 		cmn.GetRedisKey("category", "one"),
 		category.ID), category.ToJSON(), 0)
+	c.App.Cache.Set(fmt.Sprintf("%s:%s",
+		cmn.GetRedisKey("category", "slug"),
+		category.Slug), category.ToJSON(), 0)
+
 	c.App.Cache.SAdd(cmn.GetRedisKey("category", "all"), category.ToJSON())
 
 	c.JSONResponse(ctx, model2.ResponseSuccessOne{
@@ -200,7 +216,10 @@ func (c CategoryController) Delete(ctx *fasthttp.RequestCtx) {
 	c.App.Cache.SRem(cmn.GetRedisKey("category", "all"), category.ToJSON())
 	c.App.Cache.Del(fmt.Sprintf("%s:%s",
 		cmn.GetRedisKey("category", "one"),
-		phi.URLParam(ctx, "categoryID")))
+		phi.URLParam(ctx, "categoryID")),
+		fmt.Sprintf("%s:%s",
+			cmn.GetRedisKey("category", "slug"),
+			category.Slug))
 
 	c.JSONResponse(ctx, model2.ResponseSuccessOne{
 		Data: nil,

@@ -45,6 +45,7 @@ import (
 )
 
 var defaultLogger *utils.Logger
+var newAPI *API
 
 // Suite application test structure
 type Suite struct {
@@ -95,6 +96,8 @@ type TestResponse struct {
 	Status       int
 }
 
+var id int32 = 1
+
 // NewSuite build test application
 func NewSuite() *Suite {
 	var mode model.MODE
@@ -129,6 +132,7 @@ func NewSuite() *Suite {
 		EnvFile:            configFile,
 		Path:               appPath,
 		Prefix:             viper.GetString("PREFIX"),
+		UIHost:             viper.GetString("UI_HOST"),
 		Host:               viper.GetString("HOST"),
 		Port:               viper.GetInt("PORT"),
 		SecretKey:          viper.GetString("SECRET_KEY"),
@@ -154,24 +158,31 @@ func NewSuite() *Suite {
 		GithubClientSecret: viper.GetString("GITHUB_CLIENT_SECRET"),
 	}
 
+	if newAPI != nil {
+		newAPI.App.Cache.FlushDB()
+		return &Suite{API: newAPI}
+	}
+
 	db, err := database.NewDB(config)
 	cmn.FailOnError(logger, err)
-	db.Logger = logger
-	db.Reset = true
-	database.InstallDB(db)
-	ch := make(chan bool)
-	time.AfterFunc(time.Second * 2, func() {
-		ch<-true
-	})
-	<-ch
-
 	newApp := cmn.NewApp(config, logger)
 	newApp.Database = db
 	newApp.Mode = model.Test
-	newAPI := NewAPI(newApp)
+	db.Logger = logger
+	db.Reset = true
+	err = database.InstallDB(db)
+	cmn.FailOnError(logger, err)
+
+	newAPI = NewAPI(newApp)
 
 	newApp.Cache.FlushDB()
 	err = tasks.GenerateRolePermissions(newApp, newAPI.Router.Routes)
+	if err != nil {
+		panic(err)
+	}
+	err = tasks.GenerateBase(newApp, map[string]interface{}{
+		"Reset": true,
+	})
 	if err != nil {
 		panic(err)
 	}
@@ -206,9 +217,13 @@ func SetupSuite(s *Suite) {}
 
 // TearDownSuite after suite processes
 func TearDownSuite(s *Suite) {
-	roleAssignment := new(model2.UserRoleAssignment)
-	s.API.App.Database.QueryRow(fmt.Sprintf("DELETE FROM %s WHERE id > 0",
-		roleAssignment.TableName()))
+	_, err := s.API.App.Database.DB.Exec("SELECT truncate_tables($1)", s.API.App.Config.DBUser)
+	cmn.FailOnError(s.API.App.Logger, err)
+	ch := make(chan bool)
+	time.AfterFunc(time.Second*2, func() {
+		ch <- true
+	})
+	<-ch
 }
 
 var counter int64

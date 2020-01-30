@@ -19,7 +19,6 @@ package api
 import (
 	"forgolang_forum/model"
 	"github.com/valyala/fasthttp"
-	"net/http"
 )
 
 // HomeController base controller
@@ -32,5 +31,5 @@ type HomeController struct {
 func (c HomeController) Index(ctx *fasthttp.RequestCtx) {
 	c.JSONResponse(ctx, model.ResponseSuccess{
 		Data: "Forgolang",
-	}, http.StatusOK)
+	}, fasthttp.StatusOK)
 }

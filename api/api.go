@@ -35,11 +35,6 @@ type API struct {
 	Router        *Router
 	JWTAuth       *JWTAuth
 	Authorization *Authorization
-	Auth          struct {
-		ID     int64
-		RoleID int64
-		Role   string
-	}
 }
 
 // NewAPI building api
@@ -113,6 +108,11 @@ func (a *API) Paginate(ctx *fasthttp.RequestCtx, orderFields ...string) (model.P
 	}
 
 	return pagination, errs, err
+}
+
+// GetAuthContext get auth context request
+func (a *API) GetAuthContext(ctx *fasthttp.RequestCtx) *model.AuthContext {
+	return ctx.UserValue("AuthContext").(*model.AuthContext)
 }
 
 // JSONBody parse given model request body

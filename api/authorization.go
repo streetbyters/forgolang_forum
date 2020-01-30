@@ -38,12 +38,12 @@ func NewAuthorization(api *API) *Authorization {
 // Apply module authorization
 func (m *Authorization) Apply(next phi.HandlerFunc, controller, method string, cb func(ctx *fasthttp.RequestCtx) bool) phi.HandlerFunc {
 	return func(ctx *fasthttp.RequestCtx) {
-		if m.Auth.Role == "superadmin" {
+		if m.API.GetAuthContext(ctx).Role == "superadmin" {
 			next(ctx)
 			return
 		}
 
-		if !m.gen(controller, method) || !cb(ctx) {
+		if !m.gen(controller, method, ctx) || !cb(ctx) {
 			panic(pluggableError.New("forbidden",
 				fasthttp.StatusForbidden,
 				fasthttp.StatusMessage(fasthttp.StatusForbidden)))
@@ -53,7 +53,7 @@ func (m *Authorization) Apply(next phi.HandlerFunc, controller, method string, c
 	}
 }
 
-func (m *Authorization) gen(controller, method string) bool {
+func (m *Authorization) gen(controller, method string, ctx *fasthttp.RequestCtx) bool {
 	rK := cmn.RedisKeys["user"]
 	rK = rK.(map[string]string)["permission"]
 
@@ -63,8 +63,8 @@ func (m *Authorization) gen(controller, method string) bool {
 	roleAssignmentInvalidation := new(model.UserRoleAssignmentInvalidation)
 	_, err := m.App.Cache.Get(fmt.Sprintf("%s:%s:%d:%s:%s",
 		rK,
-		m.API.Auth.Role,
-		m.API.Auth.ID,
+		m.API.GetAuthContext(ctx).Role,
+		m.API.GetAuthContext(ctx).ID,
 		controller,
 		method)).Result()
 	if err != nil {
@@ -82,8 +82,8 @@ func (m *Authorization) gen(controller, method string) bool {
 			rolePermission.TableName()),
 			controller,
 			method,
-			m.API.Auth.ID,
-			m.API.Auth.RoleID).Scan(&role.ID, &role.Code)
+			m.API.GetAuthContext(ctx).ID,
+			m.API.GetAuthContext(ctx).RoleID).Scan(&role.ID, &role.Code)
 		if err != nil {
 			return false
 		}
@@ -91,8 +91,8 @@ func (m *Authorization) gen(controller, method string) bool {
 		defer func() {
 			m.App.Cache.Set(fmt.Sprintf("%s:%s:%d:%s:%s",
 				rK,
-				m.API.Auth.Role,
-				m.API.Auth.ID,
+				m.API.GetAuthContext(ctx).Role,
+				m.API.GetAuthContext(ctx).ID,
 				controller,
 				method),
 				true,

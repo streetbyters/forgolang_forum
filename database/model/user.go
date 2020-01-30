@@ -19,7 +19,7 @@ package model
 import (
 	"fmt"
 	"forgolang_forum/database"
-	"github.com/akdilsiz/agente/utils"
+	"forgolang_forum/utils"
 	"gopkg.in/guregu/null.v3/zero"
 	"time"
 )
@@ -90,6 +90,7 @@ func (d User) Query(force bool) string {
 			u.username as username,
 			u.email as email,
 			u.is_active as is_active,
+			u.avatar as avatar,
 			r.code as role,
 			ra.id as role_assignment_id,
 			us.state as state,

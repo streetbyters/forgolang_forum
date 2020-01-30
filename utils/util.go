@@ -7,6 +7,7 @@ import (
 	"github.com/google/uuid"
 	"golang.org/x/crypto/bcrypt"
 	"gopkg.in/guregu/null.v3"
+	basehtml "html"
 	html "html/template"
 	"io/ioutil"
 	"math/rand"
@@ -27,6 +28,12 @@ func HashPassword(password string, cost int) string {
 // ComparePassword bcrypt compare with given hash password and raw password
 func ComparePassword(hashPassword []byte, rawPassword []byte) error {
 	return bcrypt.CompareHashAndPassword(hashPassword, rawPassword)
+}
+
+// ToSearchString escape attack query with given string
+func ToSearchString(str string) string {
+	return strings.Replace(strings.Replace(basehtml.EscapeString(str), "**", "", -1),
+		"??", "", -1)
 }
 
 var matchFirstCap = regexp.MustCompile("(.)([A-Z][a-z]+)")

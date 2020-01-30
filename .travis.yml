@@ -1,4 +1,4 @@
-dist: bionic
+dist: xenial
 language: go
 
 go:
@@ -6,25 +6,20 @@ go:
 
 env:
   - GO111MODULE=on
-  global:
-    - PGPORT=5432
 
 git:
   depth: 1
 
 addons:
-  postgresql: "11"
   apt:
     packages:
       - rabbitmq-server
-      - postgresql-11
-      - postgresql-client-11
 
 services:
   - rabbitmq
-  - postgresql
   - redis-server
   - elasticsearch
+  - postgresql
 
 before_install:
   - sudo rabbitmqctl add_user local local

@@ -18,6 +18,7 @@ package model
 
 import (
 	"forgolang_forum/database"
+	"gopkg.in/guregu/null.v3/zero"
 	"time"
 )
 
@@ -25,7 +26,7 @@ import (
 type UserPassphraseInvalidation struct {
 	database.DBInterface `json:"-"`
 	PassphraseID         int64     `db:"passphrase_id" json:"passphrase_id" foreign:"fk_user_passphrases_passphrase_id" unique:"user_passphrase_invalidations_pkey"`
-	SourceUserID         int64     `db:"source_user_id" json:"source_user_id" foreign:"fk_user_passphrases_source_user_id"`
+	SourceUserID         zero.Int  `db:"source_user_id" json:"source_user_id" foreign:"fk_user_passphrases_source_user_id"`
 	InsertedAt           time.Time `db:"inserted_at" json:"inserted_at"`
 }
 
