@@ -18,7 +18,6 @@ package api
 
 import (
 	"context"
-	"fmt"
 	"forgolang_forum/database"
 	model2 "forgolang_forum/database/model"
 	"forgolang_forum/model"
@@ -77,10 +76,9 @@ func (c PostCategoryAssignmentController) Create(ctx *fasthttp.RequestCtx) {
 			}
 			`).
 			Params(map[string]interface{}{
-				"cat": postCategoryAssignment,
+				"cat": postCategoryAssignment.CategoryID,
 			})).
 		Do(context.TODO())
-	fmt.Println(err)
 
 	c.JSONResponse(ctx, model.ResponseSuccessOne{
 		Data: postCategoryAssignment,

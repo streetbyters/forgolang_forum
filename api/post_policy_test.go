@@ -35,7 +35,7 @@ func (s PostPolicyTest) Test_CreatePostWithValidParamsAndUserRole() {
 	UserAuth(s.Suite, "user")
 
 	postDep := new(model.PostDEP)
-	postDep.Title.SetValid("Post title")
+	postDep.Title.SetValid("Post title 2")
 	postDep.Content.SetValid("Post content")
 	postDep.Description.SetValid("Post description")
 
@@ -50,7 +50,7 @@ func (s PostPolicyTest) Test_CreatePostWithValidParamsAndModeratorRole() {
 	UserAuth(s.Suite, "moderator")
 
 	postDep := new(model.PostDEP)
-	postDep.Title.SetValid("Post title")
+	postDep.Title.SetValid("Post title 3")
 	postDep.Content.SetValid("Post content")
 	postDep.Description.SetValid("Post description")
 

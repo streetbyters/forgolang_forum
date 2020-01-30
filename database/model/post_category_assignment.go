@@ -33,8 +33,7 @@ type PostCategoryAssignment struct {
 }
 
 // NewPostCategoryAssignment generate post category assignment structure
-func NewPostCategoryAssignment(postID,
-	categoryID, sourceUserID int64) *PostCategoryAssignment {
+func NewPostCategoryAssignment(postID, categoryID, sourceUserID int64) *PostCategoryAssignment {
 	return &PostCategoryAssignment{PostID: postID,
 		CategoryID:   categoryID,
 		SourceUserID: zero.IntFrom(sourceUserID)}
