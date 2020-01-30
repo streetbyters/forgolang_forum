@@ -101,7 +101,7 @@ I would like to accept any contributions to make Forgolang.com better and featur
 
 ## LICENSE
 
-Copyright 2019 Abdulkadir Dilsiz - Çağatay Yücelen
+Copyright 2019 Forgolang Community
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
