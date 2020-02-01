@@ -28,7 +28,7 @@ jobs:
           - bootstrap.memory_lock=true
           - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
 
-    working_directory: /go/src/github.com/{{ORG_NAME}}/{{REPO_NAME}}
+    working_directory: /go/src/github.com/forgolang/forgolang_forum
     steps:
       - checkout
       - run: sleep 10
