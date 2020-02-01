@@ -6,25 +6,31 @@ jobs:
   build:
     docker:
       - image: circleci/golang:1.11
-          environment:
-            GO111MODULE: "on"
-
+        environment:
+          GO111MODULE: "on"
       - image: postgres:11.5-alpine
-          environment:
-            POSTGRES_USER: forgolang
-            POSTGRES_DB: forgolang_test
+        environment:
+          POSTGRES_USER: forgolang
+          POSTGRES_DB: forgolang_test
       - image: rabbitmq:3.5.4
+        environment:
+          RABBITMQ_DEFAULT_USER: local
+          RABBITMQ_DEFAULT_PASS: local
       - image: circleci/redis:alpine
       - image: docker.elastic.co/elasticsearch/elasticsearch:7.5.2
+        environment:
+          - cluster.name: forgolang-cluster
+          - xpack.security.enabled: false
+          - transport.host: localhost
+          - network.host: 127.0.0.1
+          - http.port: 9200
+          - discovery.type: single-node
+          - bootstrap.memory_lock=true
+          - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
 
-    working_directory: /go/src/github.com/{{ORG_NAME}}/{{REPO_NAME}}
+    working_directory: /go/src/github.com/forgolang/forgolang_forum
     steps:
       - checkout
-      - run:
-          command: |
-            sudo rabbitmqctl add_user local local
-            sudo rabbitmqctl set_user_tags local administrator
-            sudo rabbitmqctl set_permissions -p / local ".*" ".*" ".*"
       - run: sleep 10
       - run: go get -v -t -d ./...
       - run: go mod vendor
@@ -33,3 +39,4 @@ jobs:
       - run: go run ./cmd -mode test -migrate -reset
       - run: go run ./cmd -mode test -task -name GenerateBase
       - run: go test -v -coverprofile=coverage.txt -covermode=atomic ./...
+      - run: bash <(curl -s https://codecov.io/bash)
