@@ -1,0 +1,35 @@
+# Golang CircleCI 2.0 configuration file
+#
+# Check https://circleci.com/docs/2.0/language-go/ for more details
+version: 2
+jobs:
+  build:
+    docker:
+      - image: circleci/golang:1.11
+          environment:
+            GO111MODULE: "on"
+
+      - image: postgres:11.5-alpine
+          environment:
+            POSTGRES_USER: forgolang
+            POSTGRES_DB: forgolang_test
+      - image: rabbitmq:3.5.4
+      - image: circleci/redis:alpine
+      - image: docker.elastic.co/elasticsearch/elasticsearch:7.5.2
+
+    working_directory: /go/src/github.com/{{ORG_NAME}}/{{REPO_NAME}}
+    steps:
+      - checkout
+      - run:
+          command: |
+            sudo rabbitmqctl add_user local local
+            sudo rabbitmqctl set_user_tags local administrator
+            sudo rabbitmqctl set_permissions -p / local ".*" ".*" ".*"
+      - run: sleep 10
+      - run: go get -v -t -d ./...
+      - run: go mod vendor
+      - run: sleep 5
+      - run: go run ./cmd -genSecretEnv
+      - run: go run ./cmd -mode test -migrate -reset
+      - run: go run ./cmd -mode test -task -name GenerateBase
+      - run: go test -v -coverprofile=coverage.txt -covermode=atomic ./...
