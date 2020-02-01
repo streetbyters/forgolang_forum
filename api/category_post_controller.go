@@ -57,7 +57,7 @@ func (c CategoryPostController) Index(ctx *fasthttp.RequestCtx) {
 		INNER JOIN %s AS c ON pca.category_id = c.id
 		WHERE ps2.id IS NULL AND pd2.id IS NULL AND (c.id::text = $1::text OR c.slug = $1)
 		ORDER BY %s %s
-		LIMIt $2 OFFSET $3
+		LIMIT $2 OFFSET $3
 	`, c.Model.TableName(), postSlug.TableName(), postSlug.TableName(), postDetail.TableName(),
 		postDetail.TableName(), user.TableName(), postCategoryAssignment.TableName(), category.TableName(),
 		paginate.OrderField,

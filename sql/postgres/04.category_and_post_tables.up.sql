@@ -97,7 +97,7 @@ CREATE TABLE IF NOT EXISTS post_comments (
     id BIGSERIAL NOT NULL PRIMARY KEY,
     post_id bigint not null,
     user_id bigint not null,
-    parent_id bigint not null,
+    parent_id bigint,
     inserted_at TIMESTAMP WITHOUT TIME ZONE DEFAULT (CURRENT_TIMESTAMP at time zone 'utc'),
 
     CONSTRAINT fk_post_comments_post_id FOREIGN KEY (post_id)
@@ -110,10 +110,13 @@ CREATE TABLE IF NOT EXISTS post_comments (
 
 CREATE TABLE IF NOT EXISTS post_comment_details (
     id BIGSERIAL NOT NULL PRIMARY KEY,
+    post_id bigint not null,
     comment_id bigint not null,
     comment text not null,
     inserted_at TIMESTAMP WITHOUT TIME ZONE DEFAULT (CURRENT_TIMESTAMP at time zone 'utc'),
 
+    CONSTRAINT fk_post_comment_details_post_id FOREIGN KEY (post_id)
+        REFERENCES posts(id) ON UPDATE cascade ON DELETE cascade,
     CONSTRAINT fk_post_comment_details_comment_id FOREIGN KEY (comment_id)
         REFERENCES post_comments(id) ON UPDATE cascade ON DELETE cascade
 );

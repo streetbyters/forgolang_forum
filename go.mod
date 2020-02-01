@@ -17,6 +17,7 @@ require (
 	github.com/gosimple/slug v1.9.0
 	github.com/jmoiron/sqlx v1.2.0
 	github.com/lib/pq v1.3.0
+	github.com/microcosm-cc/bluemonday v1.0.2
 	github.com/olivere/elastic/v7 v7.0.10
 	github.com/rs/zerolog v1.17.2
 	github.com/shopspring/decimal v0.0.0-20191130220710-360f2bc03045
@@ -26,6 +27,7 @@ require (
 	github.com/ulule/limiter/v3 v3.3.3
 	github.com/valyala/fasthttp v1.8.0
 	golang.org/x/crypto v0.0.0-20191227163750-53104e6ec876
+	golang.org/x/net v0.0.0-20200114155413-6afb5195e5aa // indirect
 	golang.org/x/oauth2 v0.0.0-20190226205417-e64efc72b421
 	gopkg.in/go-playground/validator.v9 v9.31.0
 	gopkg.in/guregu/null.v3 v3.4.0

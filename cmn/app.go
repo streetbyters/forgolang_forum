@@ -25,6 +25,7 @@ import (
 	"forgolang_forum/utils"
 	"github.com/go-redis/redis"
 	"github.com/go-resty/resty/v2"
+	"github.com/microcosm-cc/bluemonday"
 	"github.com/olivere/elastic/v7"
 	"github.com/streadway/amqp"
 	"net/url"
@@ -50,6 +51,7 @@ type App struct {
 	Github        *github.Github
 	HttpClient    *resty.Client
 	ElasticClient *elastic.Client
+	TextPolicy    *bluemonday.Policy
 }
 
 // NewApp building new app
@@ -102,24 +104,28 @@ func NewApp(config *model.Config, logger *utils.Logger) *App {
 		"permission":  "user:permission",
 	}
 	RedisKeys["category"] = map[string]string{
-		"all": "categories",
-		"one": "category",
-		"slug": "category:slug",
+		"all":       "categories",
+		"one":       "category",
+		"slug":      "category:slug",
 		"languages": "category:languages",
 	}
 	RedisKeys["tag"] = map[string]string{
-		"all": "tags",
-		"one": "tag",
+		"all":   "tags",
+		"one":   "tag",
 		"count": "tag:count",
 	}
 	RedisKeys["post"] = map[string]string{
-		"all": "posts",
-		"one": "post",
+		"all":   "posts",
+		"one":   "post",
 		"count": "post:count",
+	}
+	RedisKeys["comment"] = map[string]string{
+		"count": "post:comments:count",
 	}
 
 	app.Queue = NewQueue(app).StartAll()
 	app.Github = github.NewGithub(config)
+	app.TextPolicy = bluemonday.UGCPolicy()
 
 	return app
 }

@@ -25,14 +25,15 @@ import (
 type PostCommentDetail struct {
 	database.DBInterface `json:"-"`
 	ID                   int64     `db:"id" json:"id"`
+	PostID               int64     `db:"post_id" json:"post_id" foreign:"fk_post_comment_details_post_id" validate:"required"`
 	CommentID            int64     `db:"comment_id" json:"comment_id" foreign:"fk_post_comment_details_comment_id" validate:"required"`
 	Comment              string    `db:"comment" json:"comment" validate:"required,gte=5,lte=10240"`
 	InsertedAt           time.Time `db:"inserted_at" json:"inserted_at"`
 }
 
 // NewPostCommentDetail generate post comment detail structure
-func NewPostCommentDetail(commentID int64) *PostCommentDetail {
-	return &PostCommentDetail{CommentID: commentID}
+func NewPostCommentDetail(postID, commentID int64) *PostCommentDetail {
+	return &PostCommentDetail{PostID: postID, CommentID: commentID}
 }
 
 // TableName post comment detail database

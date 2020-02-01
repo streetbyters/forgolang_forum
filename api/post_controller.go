@@ -83,9 +83,9 @@ func (c PostController) Create(ctx *fasthttp.RequestCtx) {
 		}
 		postReq.Slug.SetValid(postSlug.Slug)
 
-		postDetail.Title = postReq.Title.String
-		postDetail.Description = postReq.Description
-		postDetail.Content = postReq.Content.String
+		postDetail.Title = c.App.TextPolicy.Sanitize(postReq.Title.String)
+		postDetail.Description.SetValid(c.App.TextPolicy.Sanitize(postReq.Description.String))
+		postDetail.Content = c.App.TextPolicy.Sanitize(postReq.Content.String)
 		postDetail.PostID = post.ID
 		err = tx.DB.Insert(new(model.PostDetail), postDetail, "id")
 		if errs, err = database.ValidateConstraint(err, postDetail); err != nil {
