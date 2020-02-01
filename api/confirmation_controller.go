@@ -40,7 +40,7 @@ func (c ConfirmationController) Create(ctx *fasthttp.RequestCtx) {
 	otc := new(model.UserOneTimeCode)
 	userState := new(model.UserState)
 
-	c.App.Database.QueryRowWithModel(fmt.Sprintf(`
+	c.GetDB().QueryRowWithModel(fmt.Sprintf(`
 		SELECT otc.* FROM %s AS otc
 		LEFT OUTER JOIN %s AS us ON otc.user_id = us.user_id
 		LEFT OUTER JOIN %s AS us2 ON us.user_id = us2.user_id and us.id < us2.id
@@ -55,10 +55,10 @@ func (c ConfirmationController) Create(ctx *fasthttp.RequestCtx) {
 	userState = model.NewUserState(otc.UserID)
 	userState.State = database.Active
 	userState.SourceUserID.SetValid(otc.UserID)
-	c.App.Database.Insert(new(model.UserState), userState, "id")
+	c.GetDB().Insert(new(model.UserState), userState, "id")
 
 	user := new(model.User)
-	c.App.Database.QueryRowWithModel(fmt.Sprintf("%s AND u.id = $1", user.Query(false)),
+	c.GetDB().QueryRowWithModel(fmt.Sprintf("%s AND u.id = $1", user.Query(false)),
 		user,
 		phi.URLParam(ctx, "userID")).Force()
 

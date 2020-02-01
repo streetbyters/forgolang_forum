@@ -42,7 +42,7 @@ func (c CategoryPostController) Index(ctx *fasthttp.RequestCtx) {
 	var postCategoryAssignment model.PostCategoryAssignment
 	var category model.Category
 	var user model.User
-	c.App.Database.QueryWithModel(fmt.Sprintf(`
+	c.GetDB().QueryWithModel(fmt.Sprintf(`
 		SELECT 
 			p.id as id, p.author_id as author_id, u.username as author_username, 
 			p.inserted_at as inserted_at, ps.slug as slug, pd.title as title, 
@@ -70,7 +70,7 @@ func (c CategoryPostController) Index(ctx *fasthttp.RequestCtx) {
 	var count int64
 	count, _ = c.App.Cache.Get(cmn.GetRedisKey("post", "count")).Int64()
 	if count == 0 {
-		c.App.Database.DB.Get(&count, fmt.Sprintf(`
+		c.GetDB().DB.Get(&count, fmt.Sprintf(`
 			SELECT count(p.id) FROM %s AS p
 			INNER JOIN %s AS pd ON p.id = pd.post_id
 			LEFT OUTER JOIN %s AS pd2 ON pd.post_id = pd2.post_id AND pd.id < pd2.id
@@ -92,7 +92,7 @@ func (c CategoryPostController) Show(ctx *fasthttp.RequestCtx) {
 	var postCategoryAssignment model.PostCategoryAssignment
 	var category model.Category
 	var user model.User
-	c.App.Database.QueryRowWithModel(fmt.Sprintf(`
+	c.GetDB().QueryRowWithModel(fmt.Sprintf(`
 		SELECT 
 			p.id as id, p.author_id as author_id, u.username as author_username, 
 			p.inserted_at as inserted_at, ps.slug as slug, pd.title as title, 

@@ -22,11 +22,11 @@ func (s LogoutControllerTest) Test_PostLogoutWithGivenIdentifier() {
 	user.Email = "logout-user@mail.com"
 	user.Username = "logout-user"
 	user.IsActive = true
-	err := s.API.App.Database.Insert(new(model.User), user, "id")
+	err := s.API.GetDB().Insert(new(model.User), user, "id")
 	s.Nil(err)
 
 	passphrase := model.NewUserPassphrase(user.ID)
-	err = s.API.App.Database.Insert(new(model.UserPassphrase), passphrase, "id")
+	err = s.API.GetDB().Insert(new(model.UserPassphrase), passphrase, "id")
 	s.Nil(err)
 
 	response := s.JSON(Post, fmt.Sprintf("/api/v1/user/%d/sign_out/%d",
@@ -43,7 +43,7 @@ func (s LogoutControllerTest) Test_Should_404Err_PostLogoutWithGivenIdentifierIf
 	user.Email = "logout-user-2@mail.com"
 	user.Username = "logout-user-2"
 	user.IsActive = true
-	err := s.API.App.Database.Insert(new(model.User), user, "id")
+	err := s.API.GetDB().Insert(new(model.User), user, "id")
 	s.Nil(err)
 
 	response := s.JSON(Post, fmt.Sprintf("/api/v1/user/%d/sign_out/999999999",
@@ -61,17 +61,17 @@ func (s LogoutControllerTest) Test_Should_404Err_PostLogoutWithGivenIdentifierIf
 	user.Email = "logout-user-3@mail.com"
 	user.Username = "logout-user-3"
 	user.IsActive = true
-	err := s.API.App.Database.Insert(new(model.User), user, "id")
+	err := s.API.GetDB().Insert(new(model.User), user, "id")
 	s.Nil(err)
 
 	passphrase := model.NewUserPassphrase(user.ID)
-	err = s.API.App.Database.Insert(new(model.UserPassphrase), passphrase, "id")
+	err = s.API.GetDB().Insert(new(model.UserPassphrase), passphrase, "id")
 	s.Nil(err)
 
 	passphraseInvalidation := model.NewUserPassphraseInvalidation()
 	passphraseInvalidation.PassphraseID = passphrase.ID
 	passphraseInvalidation.SourceUserID.SetValid(user.ID)
-	err = s.API.App.Database.Insert(new(model.UserPassphraseInvalidation), passphraseInvalidation,
+	err = s.API.GetDB().Insert(new(model.UserPassphraseInvalidation), passphraseInvalidation,
 		"passphrase_id")
 	s.Nil(err)
 

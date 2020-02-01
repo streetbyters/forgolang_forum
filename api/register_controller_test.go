@@ -52,7 +52,7 @@ func (s RegisterControllerTest) Test_Should_422Err_PostRegisterWithValidParamsIf
 	user.Email = "akdilsiz-2@tecpor.com"
 	user.Username = "akdilsiz"
 	user.IsActive = true
-	err := s.API.App.Database.Insert(new(model2.User), user, "id")
+	err := s.API.GetDB().Insert(new(model2.User), user, "id")
 	s.Nil(err)
 
 	register := new(model.RegisterRequest)

@@ -19,7 +19,7 @@ func (s PostDetailPolicyTest) Test_CreatePostDetailWithModeratorRole() {
 	UserAuth(s.Suite, "moderator")
 
 	post := model.NewPost(s.Auth.User.ID)
-	err := s.API.App.Database.Insert(new(model.Post), post, "id")
+	err := s.API.GetDB().Insert(new(model.Post), post, "id")
 	s.Nil(err)
 
 	postDetail := new(model.PostDetail)
@@ -42,13 +42,13 @@ func (s PostDetailPolicyTest) Test_Should_403Err_CreatePostDetailWithModeratorRo
 	user.Username = "policy-user"
 	user.Email = "policy-user@mail.com"
 	user.IsActive = true
-	err := s.API.App.Database.Insert(new(model.User),
+	err := s.API.GetDB().Insert(new(model.User),
 		user,
 		"id", "inserted_at", "updated_at")
 	s.Nil(err)
 
 	post := model.NewPost(user.ID)
-	err = s.API.App.Database.Insert(new(model.Post), post, "id")
+	err = s.API.GetDB().Insert(new(model.Post), post, "id")
 	s.Nil(err)
 
 	postDetail := new(model.PostDetail)
@@ -67,7 +67,7 @@ func (s PostDetailPolicyTest) Test_CreatePostDetailWithUserRole() {
 	UserAuth(s.Suite, "user")
 
 	post := model.NewPost(s.Auth.User.ID)
-	err := s.API.App.Database.Insert(new(model.Post), post, "id")
+	err := s.API.GetDB().Insert(new(model.Post), post, "id")
 	s.Nil(err)
 
 	postDetail := new(model.PostDetail)
@@ -90,13 +90,13 @@ func (s PostDetailPolicyTest) Test_Should_403Err_CreatePostDetailWithUserRoleIfA
 	user.Username = "policy-user-2"
 	user.Email = "policy-user-2@mail.com"
 	user.IsActive = true
-	err := s.API.App.Database.Insert(new(model.User),
+	err := s.API.GetDB().Insert(new(model.User),
 		user,
 		"id", "inserted_at", "updated_at")
 	s.Nil(err)
 
 	post := model.NewPost(user.ID)
-	err = s.API.App.Database.Insert(new(model.Post), post, "id")
+	err = s.API.GetDB().Insert(new(model.Post), post, "id")
 	s.Nil(err)
 
 	postDetail := new(model.PostDetail)

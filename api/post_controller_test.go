@@ -51,12 +51,12 @@ func (s PostControllerTest) Test_Should_422Err_CreatePostWithInvalidParams() {
 
 func (s PostControllerTest) Test_Should_422Err_CreatePostWithValidParamsIfSlugNotUnique() {
 	post := model.NewPost(s.Auth.User.ID)
-	err := s.API.App.Database.Insert(new(model.Post), post, "id")
+	err := s.API.GetDB().Insert(new(model.Post), post, "id")
 	s.Nil(err)
 
 	postSlug := model.NewPostSlug(post.ID, s.Auth.User.ID)
 	postSlug.Slug = slug.Make("Post title slug")
-	err = s.API.App.Database.Insert(new(model.PostSlug), postSlug, "id")
+	err = s.API.GetDB().Insert(new(model.PostSlug), postSlug, "id")
 	s.Nil(err)
 
 	postDep := new(model.PostDEP)
@@ -76,7 +76,7 @@ func (s PostControllerTest) Test_Should_422Err_CreatePostWithValidParamsIfSlugNo
 
 func (s PostControllerTest) Test_DeletePostWithGivenIdentifier() {
 	post := model.NewPost(s.Auth.User.ID)
-	err := s.API.App.Database.Insert(new(model.Post), post, "id")
+	err := s.API.GetDB().Insert(new(model.Post), post, "id")
 	s.Nil(err)
 
 	response := s.JSON(Delete, fmt.Sprintf("/api/v1/post/%d", post.ID), nil)

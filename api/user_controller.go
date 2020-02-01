@@ -44,7 +44,7 @@ func (c UserController) Index(ctx *fasthttp.RequestCtx) {
 	user := new(model.User)
 
 	var users []model.User
-	c.App.Database.QueryWithModel(fmt.Sprintf(`%s
+	c.GetDB().QueryWithModel(fmt.Sprintf(`%s
 		ORDER BY %s %s
 		LIMIT $1 OFFSET $2
 	`, user.Query(false), paginate.OrderField, paginate.OrderBy),
@@ -52,7 +52,7 @@ func (c UserController) Index(ctx *fasthttp.RequestCtx) {
 		paginate.Limit, paginate.Offset)
 
 	var count int64
-	c.App.Database.DB.Get(&count,
+	c.GetDB().DB.Get(&count,
 		fmt.Sprintf("SELECT count(u.id) FROM %s AS u", user.TableName()))
 
 	c.JSONResponse(ctx, model2.ResponseSuccess{
@@ -77,7 +77,7 @@ func (c UserController) Show(ctx *fasthttp.RequestCtx) {
 		return
 	}
 
-	c.App.Database.QueryRowWithModel(fmt.Sprintf("%s AND u.id = $1", user.Query(false)),
+	c.GetDB().QueryRowWithModel(fmt.Sprintf("%s AND u.id = $1", user.Query(false)),
 		&user,
 		phi.URLParam(ctx, "userID")).Force()
 
@@ -114,7 +114,7 @@ func (c UserController) Create(ctx *fasthttp.RequestCtx) {
 		return
 	}
 
-	err := c.App.Database.Insert(new(model.User), user, "id", "inserted_at", "updated_at")
+	err := c.GetDB().Insert(new(model.User), user, "id", "inserted_at", "updated_at")
 	if errs, err := database.ValidateConstraint(err, user); err != nil {
 		c.JSONResponse(ctx, model2.ResponseError{
 			Errors: errs,
@@ -138,7 +138,7 @@ func (c UserController) Create(ctx *fasthttp.RequestCtx) {
 // Update user with given identifier and valid params
 func (c UserController) Update(ctx *fasthttp.RequestCtx) {
 	user := new(model.User)
-	c.App.Database.QueryRowWithModel(fmt.Sprintf("%s AND u.id = $1", user.Query(false)),
+	c.GetDB().QueryRowWithModel(fmt.Sprintf("%s AND u.id = $1", user.Query(false)),
 		user,
 		phi.URLParam(ctx, "userID")).Force()
 
@@ -159,7 +159,7 @@ func (c UserController) Update(ctx *fasthttp.RequestCtx) {
 
 	userRequest.InsertedAt = user.InsertedAt
 
-	err := c.App.Database.Update(user, &userRequest, nil, "id", "inserted_at", "updated_at")
+	err := c.GetDB().Update(user, &userRequest, nil, "id", "inserted_at", "updated_at")
 	if errs, err := database.ValidateConstraint(err, user); err != nil {
 		c.JSONResponse(ctx, model2.ResponseError{
 			Errors: errs,
@@ -187,7 +187,7 @@ func (c UserController) Update(ctx *fasthttp.RequestCtx) {
 func (c UserController) Delete(ctx *fasthttp.RequestCtx) {
 	var user model.User
 
-	c.App.Database.Delete(user.TableName(),
+	c.GetDB().Delete(user.TableName(),
 		"id = $1",
 		phi.URLParam(ctx, "userID")).Force()
 

@@ -54,14 +54,14 @@ func (c PostController) Create(ctx *fasthttp.RequestCtx) {
 
 	var err error
 	errs := make(map[string]string)
-	c.App.Database.Transaction(func(tx *database.Tx) error {
+	c.GetDB().Transaction(func(tx *database.Tx) error {
 		post.AuthorID = c.GetAuthContext(ctx).ID
 		err = tx.DB.Insert(new(model.Post), post, "id")
 		if errs, err = database.ValidateConstraint(err, post); err != nil {
 			return err
 		}
 
-		result := c.App.Database.QueryRow(fmt.Sprintf(`
+		result := c.GetDB().QueryRow(fmt.Sprintf(`
 			SELECT * FROM %s AS ps
 			LEFT OUTER JOIN %s AS ps2 ON ps.post_id = ps2.post_id AND ps.id < ps2.id
 			WHERE ps2.id IS NULL and ps.slug = $1
@@ -120,7 +120,7 @@ func (c PostController) Create(ctx *fasthttp.RequestCtx) {
 // Delete post with given identifier
 func (c PostController) Delete(ctx *fasthttp.RequestCtx) {
 	var post model.Post
-	c.App.Database.Delete(post.TableName(), "id = $1",
+	c.GetDB().Delete(post.TableName(), "id = $1",
 		phi.URLParam(ctx, "postID")).Force()
 
 	c.JSONResponse(ctx, nil, fasthttp.StatusNoContent)

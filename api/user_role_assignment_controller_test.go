@@ -21,7 +21,7 @@ func (s UserRoleAssignmentControllerTest) Test_CreateUserRoleAssignmentWithValid
 	user := model.NewUser(&pwd)
 	user.Email = "akdilsiz@tecpor.com"
 	user.Username = "akdilsiz"
-	err := s.API.App.Database.Insert(new(model.User), user, "id")
+	err := s.API.GetDB().Insert(new(model.User), user, "id")
 	s.Nil(err)
 
 	roleAssignment := new(model.UserRoleAssignment)
@@ -58,7 +58,7 @@ func (s UserRoleAssignmentControllerTest) Test_Should_422Err_CreateUserRoleAssig
 	user := model.NewUser(&pwd)
 	user.Email = "akdilsiz-2@tecpor.com"
 	user.Username = "akdilsiz-2"
-	err := s.API.App.Database.Insert(new(model.User), user, "id")
+	err := s.API.GetDB().Insert(new(model.User), user, "id")
 	s.Nil(err)
 
 	roleAssignment := new(model.UserRoleAssignment)
@@ -77,7 +77,7 @@ func (s UserRoleAssignmentControllerTest) Test_Should_422Err_CreateUserRoleAssig
 	user := model.NewUser(&pwd)
 	user.Email = "akdilsiz-3@tecpor.com"
 	user.Username = "akdilsiz-3"
-	err := s.API.App.Database.Insert(new(model.User), user, "id")
+	err := s.API.GetDB().Insert(new(model.User), user, "id")
 	s.Nil(err)
 
 	roleAssignment := new(model.UserRoleAssignment)

@@ -26,7 +26,7 @@ func (s CategoryControllerTest) Test_ListAllCategories() {
 		category.Title = fmt.Sprintf("Category %d", i)
 		category.Description.SetValid("Category Description")
 		category.Slug = slug.Make(category.Title)
-		err := s.API.App.Database.Insert(model.NewCategory(),
+		err := s.API.GetDB().Insert(model.NewCategory(),
 			category,
 			"id", "inserted_at", "updated_at")
 		s.Nil(err)
@@ -46,7 +46,7 @@ func (s CategoryControllerTest) Test_ListAllCachedCategories() {
 		category.Title = fmt.Sprintf("Category Cache %d", i)
 		category.Description.SetValid("Category Description")
 		category.Slug = slug.Make(category.Title)
-		err := s.API.App.Database.Insert(model.NewCategory(),
+		err := s.API.GetDB().Insert(model.NewCategory(),
 			category,
 			"id", "inserted_at", "updated_at")
 		s.Nil(err)
@@ -66,7 +66,7 @@ func (s CategoryControllerTest) Test_ShowCategoryWithGivenIdentifier() {
 	category.Title = "Show Category"
 	category.Description.SetValid("Show Category Description")
 	category.Slug = slug.Make("Show category")
-	err := s.API.App.Database.Insert(model.NewCategory(),
+	err := s.API.GetDB().Insert(model.NewCategory(),
 		category,
 		"id", "inserted_at", "updated_at")
 	s.Nil(err)
@@ -91,7 +91,7 @@ func (s CategoryControllerTest) Test_ShowCachedCategoryWithGivenIdentifier() {
 	category.Title = "Show Category"
 	category.Description.SetValid("Show Category Description")
 	category.Slug = slug.Make("Show category 2")
-	err := s.API.App.Database.Insert(model.NewCategory(),
+	err := s.API.GetDB().Insert(model.NewCategory(),
 		category,
 		"id", "inserted_at", "updated_at")
 	s.Nil(err)
@@ -176,7 +176,7 @@ func (s CategoryControllerTest) Test_Should_422Err_CreateCategoryWithValidParams
 	category.Title = "Create Category 2"
 	category.Description.SetValid("Category Description")
 	category.Slug = slug.Make(category.Title)
-	err := s.API.App.Database.Insert(new(model.Category), category, "id")
+	err := s.API.GetDB().Insert(new(model.Category), category, "id")
 	s.Nil(err)
 
 	category = model.NewCategory()
@@ -197,7 +197,7 @@ func (s CategoryControllerTest) Test_UpdateCategoryWithGivenIdentifierAndValidPa
 	category.Title = "Update Category"
 	category.Description.SetValid("Category Description")
 	category.Slug = slug.Make(category.Title)
-	err := s.API.App.Database.Insert(new(model.Category),
+	err := s.API.GetDB().Insert(new(model.Category),
 		category,
 		"id", "inserted_at", "updated_at")
 	s.Nil(err)
@@ -243,7 +243,7 @@ func (s CategoryControllerTest) Test_Should_422Error_UpdateCategoryWithGivenIden
 	category.Title = "Update Category 2"
 	category.Description.SetValid("Category Description")
 	category.Slug = slug.Make(category.Title)
-	err := s.API.App.Database.Insert(new(model.Category),
+	err := s.API.GetDB().Insert(new(model.Category),
 		category,
 		"id", "inserted_at", "updated_at")
 	s.Nil(err)
@@ -277,7 +277,7 @@ func (s CategoryControllerTest) Test_Should_422Error_UpdateCategoryWithGivenIden
 	category.Title = "Update Category 4 / Edit"
 	category.Description.SetValid("Category Description")
 	category.Slug = slug.Make(category.Title)
-	err := s.API.App.Database.Insert(new(model.Category),
+	err := s.API.GetDB().Insert(new(model.Category),
 		category,
 		"id", "inserted_at", "updated_at")
 	s.Nil(err)
@@ -286,7 +286,7 @@ func (s CategoryControllerTest) Test_Should_422Error_UpdateCategoryWithGivenIden
 	category.Title = "Update Category 3"
 	category.Description.SetValid("Category Description")
 	category.Slug = slug.Make(category.Title)
-	err = s.API.App.Database.Insert(new(model.Category),
+	err = s.API.GetDB().Insert(new(model.Category),
 		category,
 		"id", "inserted_at", "updated_at")
 	s.Nil(err)
@@ -308,7 +308,7 @@ func (s CategoryControllerTest) Test_DeleteCategoryWithGivenIdentifier() {
 	category.Title = "Delete Category"
 	category.Description.SetValid("Category Description")
 	category.Slug = slug.Make(category.Title)
-	err := s.API.App.Database.Insert(new(model.Category),
+	err := s.API.GetDB().Insert(new(model.Category),
 		category,
 		"id", "inserted_at", "updated_at")
 	s.Nil(err)

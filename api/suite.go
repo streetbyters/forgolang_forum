@@ -227,7 +227,7 @@ func SetupSuite(s *Suite) {}
 
 // TearDownSuite after suite processes
 func TearDownSuite(s *Suite) {
-	_, err := s.API.App.Database.DB.Exec("SELECT truncate_tables($1)", s.API.App.Config.DBUser)
+	_, err := s.API.GetDB().DB.Exec("SELECT truncate_tables($1)", s.API.App.Config.DBUser)
 	cmn.FailOnError(s.API.App.Logger, err)
 	ch := make(chan bool)
 	time.AfterFunc(time.Second*2, func() {
@@ -248,7 +248,7 @@ func UserAuth(s *Suite, typ ...string) {
 	user.IsActive = true
 	userModel := new(model2.User)
 
-	err := s.API.App.Database.Insert(userModel, user,
+	err := s.API.GetDB().Insert(userModel, user,
 		"id", "inserted_at")
 	if err != nil {
 		panic(err)
@@ -272,7 +272,7 @@ func UserAuth(s *Suite, typ ...string) {
 		roleAssignment.RoleID = 1
 	}
 
-	err = s.API.App.Database.Insert(new(model2.UserRoleAssignment), roleAssignment, "id")
+	err = s.API.GetDB().Insert(new(model2.UserRoleAssignment), roleAssignment, "id")
 
 	token, _ := s.API.JWTAuth.Generate(user.ID, roleAssignment.RoleID, _s)
 	s.Auth.Token = token

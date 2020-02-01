@@ -76,7 +76,7 @@ func (c CategoryLanguageController) Create(ctx *fasthttp.RequestCtx) {
 			return err
 		}
 
-		err = c.App.Database.Insert(new(model2.CategoryLanguage), categoryLanguage,
+		err = c.GetDB().Insert(new(model2.CategoryLanguage), categoryLanguage,
 			"id", "inserted_at")
 		if errs, err = database.ValidateConstraint(err, categoryLanguage); err != nil {
 			return err

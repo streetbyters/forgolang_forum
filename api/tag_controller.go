@@ -61,13 +61,13 @@ func (c TagController) Index(ctx *fasthttp.RequestCtx) {
 		return
 	}
 
-	c.App.Database.QueryWithModel(fmt.Sprintf(`
+	c.GetDB().QueryWithModel(fmt.Sprintf(`
 		SELECT t.* FROM %s AS t
 		ORDER BY %s %s
 	`, c.Model.TableName(), paginate.OrderField, paginate.OrderBy),
 		&tags)
 
-	c.App.Database.DB.Get(&count, fmt.Sprintf("SELECT count(*) FROM %s", c.Model.TableName()))
+	c.GetDB().DB.Get(&count, fmt.Sprintf("SELECT count(*) FROM %s", c.Model.TableName()))
 
 	var ts []interface{}
 	for _, t := range tags {

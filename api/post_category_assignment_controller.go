@@ -53,7 +53,7 @@ func (c PostCategoryAssignmentController) Create(ctx *fasthttp.RequestCtx) {
 		return
 	}
 
-	err = c.App.Database.Insert(new(model2.PostCategoryAssignment),
+	err = c.GetDB().Insert(new(model2.PostCategoryAssignment),
 		postCategoryAssignment,
 		"id", "inserted_At")
 	if errs, err := database.ValidateConstraint(err, postCategoryAssignment); err != nil {

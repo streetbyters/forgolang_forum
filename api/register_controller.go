@@ -47,7 +47,7 @@ func (c RegisterController) Create(ctx *fasthttp.RequestCtx) {
 	user.Email = registerRequest.Email
 	user.Username = registerRequest.Username
 	user.IsActive = true
-	err := c.App.Database.Insert(new(model2.User),
+	err := c.GetDB().Insert(new(model2.User),
 		user,
 		"id", "inserted_at", "updated_at")
 	if errs, err := database.ValidateConstraint(err, user); err != nil {
@@ -60,12 +60,12 @@ func (c RegisterController) Create(ctx *fasthttp.RequestCtx) {
 
 	otc := model2.NewUserOneTimeCode(user.ID)
 	otc.Type = database.Confirmation
-	c.App.Database.Insert(new(model2.UserOneTimeCode), otc, "id")
+	c.GetDB().Insert(new(model2.UserOneTimeCode), otc, "id")
 
 	userState := model2.NewUserState(user.ID)
 	userState.State = database.WaitForConfirmation
 	userState.SourceUserID.SetValid(user.ID)
-	c.App.Database.Insert(new(model2.UserState), userState, "id")
+	c.GetDB().Insert(new(model2.UserState), userState, "id")
 
 	registerResponse := new(model.RegisterResponse)
 	registerResponse.UserID = user.ID
@@ -74,7 +74,7 @@ func (c RegisterController) Create(ctx *fasthttp.RequestCtx) {
 
 	roleAssignment := model2.NewUserRoleAssignment(user.ID, 3)
 	roleAssignment.SourceUserID.SetValid(user.ID)
-	c.App.Database.Insert(new(model2.UserRoleAssignment), roleAssignment, "id")
+	c.GetDB().Insert(new(model2.UserRoleAssignment), roleAssignment, "id")
 
 	go func() {
 		c.App.Queue.Email.Publish(cmn.QueueEmailBody{

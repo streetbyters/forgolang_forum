@@ -24,11 +24,11 @@ func (s CategoryPostControllerTest) Test_ListAllPosts() {
 	category := model.NewCategory()
 	category.Title = "Category"
 	category.Slug = slug.Make(category.Title)
-	err := s.API.App.Database.Insert(new(model.Category), category, "id")
+	err := s.API.GetDB().Insert(new(model.Category), category, "id")
 	s.Nil(err)
 	for i := 0; i < 50; i++ {
 		post := model.NewPost(s.Auth.User.ID)
-		err := s.API.App.Database.Insert(new(model.Post), post, "id")
+		err := s.API.GetDB().Insert(new(model.Post), post, "id")
 		s.Nil(err)
 		if err != nil {
 			break
@@ -37,14 +37,14 @@ func (s CategoryPostControllerTest) Test_ListAllPosts() {
 		postDetail.Title = "Post"
 		postDetail.Description.SetValid("Post Detail")
 		postDetail.Content = "Post Context"
-		err = s.API.App.Database.Insert(new(model.PostDetail), postDetail, "id")
+		err = s.API.GetDB().Insert(new(model.PostDetail), postDetail, "id")
 		s.Nil(err)
 		if err != nil {
 			break
 		}
 
 		postCategoryAssignment := model.NewPostCategoryAssignment(post.ID, category.ID, s.Auth.User.ID)
-		err = s.API.App.Database.Insert(new(model.PostCategoryAssignment), postCategoryAssignment, "id")
+		err = s.API.GetDB().Insert(new(model.PostCategoryAssignment), postCategoryAssignment, "id")
 		s.Nil(err)
 		if err != nil {
 			break
@@ -66,11 +66,11 @@ func (s CategoryPostControllerTest) Test_ListAllPostsWithPaginationParams() {
 	category := model.NewCategory()
 	category.Title = "Category 2"
 	category.Slug = slug.Make(category.Title)
-	err := s.API.App.Database.Insert(new(model.Category), category, "id")
+	err := s.API.GetDB().Insert(new(model.Category), category, "id")
 	s.Nil(err)
 	for i := 0; i < 50; i++ {
 		post := model.NewPost(s.Auth.User.ID)
-		err := s.API.App.Database.Insert(new(model.Post), post, "id")
+		err := s.API.GetDB().Insert(new(model.Post), post, "id")
 		s.Nil(err)
 		if err != nil {
 			break
@@ -79,14 +79,14 @@ func (s CategoryPostControllerTest) Test_ListAllPostsWithPaginationParams() {
 		postDetail.Title = "Post"
 		postDetail.Description.SetValid("Post Detail")
 		postDetail.Content = "Post Context"
-		err = s.API.App.Database.Insert(new(model.PostDetail), postDetail, "id")
+		err = s.API.GetDB().Insert(new(model.PostDetail), postDetail, "id")
 		s.Nil(err)
 		if err != nil {
 			break
 		}
 
 		postCategoryAssignment := model.NewPostCategoryAssignment(post.ID, category.ID, s.Auth.User.ID)
-		err = s.API.App.Database.Insert(new(model.PostCategoryAssignment), postCategoryAssignment, "id")
+		err = s.API.GetDB().Insert(new(model.PostCategoryAssignment), postCategoryAssignment, "id")
 		s.Nil(err)
 		if err != nil {
 			break
@@ -107,27 +107,27 @@ func (s CategoryPostControllerTest) Test_ShowPostWithGivenSlug() {
 	category := model.NewCategory()
 	category.Title = "Category 3"
 	category.Slug = slug.Make(category.Title)
-	err := s.API.App.Database.Insert(new(model.Category), category, "id")
+	err := s.API.GetDB().Insert(new(model.Category), category, "id")
 	s.Nil(err)
 
 	post := model.NewPost(s.Auth.User.ID)
-	err = s.API.App.Database.Insert(new(model.Post), post, "id")
+	err = s.API.GetDB().Insert(new(model.Post), post, "id")
 	s.Nil(err)
 
 	postCategoryAssignment := model.NewPostCategoryAssignment(post.ID, category.ID, s.Auth.User.ID)
-	err = s.API.App.Database.Insert(new(model.PostCategoryAssignment), postCategoryAssignment, "id")
+	err = s.API.GetDB().Insert(new(model.PostCategoryAssignment), postCategoryAssignment, "id")
 	s.Nil(err)
 
 	postDetail := model.NewPostDetail(post.ID, s.Auth.User.ID)
 	postDetail.Title = "Post"
 	postDetail.Description.SetValid("Post Detail")
 	postDetail.Content = "Post Context"
-	err = s.API.App.Database.Insert(new(model.PostDetail), postDetail, "id")
+	err = s.API.GetDB().Insert(new(model.PostDetail), postDetail, "id")
 	s.Nil(err)
 
 	postSlug := model.NewPostSlug(post.ID, s.Auth.User.ID)
 	postSlug.Slug = "slug-1"
-	err = s.API.App.Database.Insert(new(model.PostSlug), postSlug, "id")
+	err = s.API.GetDB().Insert(new(model.PostSlug), postSlug, "id")
 	s.Nil(err)
 
 	response := s.JSON(Get, fmt.Sprintf("/api/v1/category/%d/post/%s", category.ID, postSlug.Slug), nil)
@@ -150,27 +150,27 @@ func (s CategoryPostControllerTest) Test_ShowPostWithGivenIdentifier() {
 	category := model.NewCategory()
 	category.Title = "Category 4"
 	category.Slug = slug.Make(category.Title)
-	err := s.API.App.Database.Insert(new(model.Category), category, "id")
+	err := s.API.GetDB().Insert(new(model.Category), category, "id")
 	s.Nil(err)
 
 	post := model.NewPost(s.Auth.User.ID)
-	err = s.API.App.Database.Insert(new(model.Post), post, "id")
+	err = s.API.GetDB().Insert(new(model.Post), post, "id")
 	s.Nil(err)
 
 	postDetail := model.NewPostDetail(post.ID, s.Auth.User.ID)
 	postDetail.Title = "Post"
 	postDetail.Description.SetValid("Post Detail")
 	postDetail.Content = "Post Context"
-	err = s.API.App.Database.Insert(new(model.PostDetail), postDetail, "id")
+	err = s.API.GetDB().Insert(new(model.PostDetail), postDetail, "id")
 	s.Nil(err)
 
 	postSlug := model.NewPostSlug(post.ID, s.Auth.User.ID)
 	postSlug.Slug = "slug-2"
-	err = s.API.App.Database.Insert(new(model.PostSlug), postSlug, "id")
+	err = s.API.GetDB().Insert(new(model.PostSlug), postSlug, "id")
 	s.Nil(err)
 
 	postCategoryAssignment := model.NewPostCategoryAssignment(post.ID, category.ID, s.Auth.User.ID)
-	err = s.API.App.Database.Insert(new(model.PostCategoryAssignment), postCategoryAssignment, "id")
+	err = s.API.GetDB().Insert(new(model.PostCategoryAssignment), postCategoryAssignment, "id")
 	s.Nil(err)
 
 	response := s.JSON(Get, fmt.Sprintf("/api/v1/category/%d/post/%d", category.ID, post.ID), nil)

@@ -58,14 +58,14 @@ func (c CategoryController) Index(ctx *fasthttp.RequestCtx) {
 		return
 	}
 
-	c.App.Database.QueryWithModel(fmt.Sprintf(`
+	c.GetDB().QueryWithModel(fmt.Sprintf(`
 		SELECT c.* FROM %s AS c ORDER BY %s %s
 	`, c.Model.TableName(),
 		paginate.OrderField,
 		paginate.OrderBy),
 		&categories)
 
-	c.App.Database.DB.Get(&count,
+	c.GetDB().DB.Get(&count,
 		fmt.Sprintf("SELECT count(*) FROM %s", c.Model.TableName()))
 
 	var cats []interface{}
@@ -96,7 +96,7 @@ func (c CategoryController) Show(ctx *fasthttp.RequestCtx) {
 		return
 	}
 
-	c.App.Database.QueryRowWithModel(fmt.Sprintf(`
+	c.GetDB().QueryRowWithModel(fmt.Sprintf(`
 			SELECT c.* FROM %s AS c WHERE id = $1 
 		`, c.Model.TableName()),
 		&category,
@@ -129,7 +129,7 @@ func (c CategoryController) Create(ctx *fasthttp.RequestCtx) {
 
 	category.Slug = slug.Make(category.Title)
 
-	err := c.App.Database.Insert(new(model.Category), category, "id", "inserted_at", "updated_at")
+	err := c.GetDB().Insert(new(model.Category), category, "id", "inserted_at", "updated_at")
 	if errs, err := database.ValidateConstraint(err, category); err != nil {
 		c.JSONResponse(ctx, model2.ResponseError{
 			Errors: errs,
@@ -154,7 +154,7 @@ func (c CategoryController) Create(ctx *fasthttp.RequestCtx) {
 // Update category with given identifier and valid params
 func (c CategoryController) Update(ctx *fasthttp.RequestCtx) {
 	category := new(model.Category)
-	c.App.Database.QueryRowWithModel(fmt.Sprintf(`
+	c.GetDB().QueryRowWithModel(fmt.Sprintf(`
 			SELECT c.* FROM %s AS c WHERE c.id = $1
 		`, c.Model.TableName()),
 		category,
@@ -176,7 +176,7 @@ func (c CategoryController) Update(ctx *fasthttp.RequestCtx) {
 
 	c.App.Cache.SRem(cmn.GetRedisKey("category", "all"), category.ToJSON())
 
-	err := c.App.Database.Update(category, &categoryRequest, nil,
+	err := c.GetDB().Update(category, &categoryRequest, nil,
 		"id", "inserted_at", "updated_at")
 	if errs, err := database.ValidateConstraint(err, category); err != nil {
 		c.App.Cache.SAdd(cmn.GetRedisKey("category", "all"), category.ToJSON())
@@ -204,12 +204,12 @@ func (c CategoryController) Update(ctx *fasthttp.RequestCtx) {
 // Delete category with given identifier
 func (c CategoryController) Delete(ctx *fasthttp.RequestCtx) {
 	var category model.Category
-	c.App.Database.QueryRowWithModel(fmt.Sprintf("SELECT c.* FROM %s AS c WHERE c.id = $1",
+	c.GetDB().QueryRowWithModel(fmt.Sprintf("SELECT c.* FROM %s AS c WHERE c.id = $1",
 		category.TableName()),
 		&category,
 		phi.URLParam(ctx, "categoryID")).Force()
 
-	c.App.Database.Delete(c.Model.TableName(),
+	c.GetDB().Delete(c.Model.TableName(),
 		"id = $1",
 		phi.URLParam(ctx, "categoryID")).Force()
 

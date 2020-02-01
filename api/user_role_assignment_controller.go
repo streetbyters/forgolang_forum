@@ -58,7 +58,7 @@ func (c UserRoleAssignmentController) Create(ctx *fasthttp.RequestCtx) {
 	}
 
 	roleAssignment.SourceUserID.SetValid(c.GetAuthContext(ctx).ID)
-	err = c.App.Database.Insert(new(model.UserRoleAssignment), &roleAssignment, "id", "inserted_at")
+	err = c.GetDB().Insert(new(model.UserRoleAssignment), &roleAssignment, "id", "inserted_at")
 	if errs, err := database.ValidateConstraint(err, &roleAssignment); err != nil {
 		c.JSONResponse(ctx, model2.ResponseError{
 			Errors: errs,
@@ -68,7 +68,7 @@ func (c UserRoleAssignmentController) Create(ctx *fasthttp.RequestCtx) {
 	}
 
 	user := new(model.User)
-	c.App.Database.QueryRowWithModel(fmt.Sprintf("%s AND u.id = $1", user.Query(false)),
+	c.GetDB().QueryRowWithModel(fmt.Sprintf("%s AND u.id = $1", user.Query(false)),
 		user,
 		phi.URLParam(ctx, "userID")).Force()
 
