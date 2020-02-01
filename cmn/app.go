@@ -105,6 +105,7 @@ func NewApp(config *model.Config, logger *utils.Logger) *App {
 		"all": "categories",
 		"one": "category",
 		"slug": "category:slug",
+		"languages": "category:languages",
 	}
 	RedisKeys["tag"] = map[string]string{
 		"all": "tags",

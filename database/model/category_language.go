@@ -27,9 +27,9 @@ import (
 type CategoryLanguage struct {
 	model.Model  `json:"-"`
 	ID           int64       `db:"id" json:"id"`
-	CategoryID   int64       `db:"category_id" json:"category_id" foreign:"fk_category_languages_category_id" validate:"require"`
+	CategoryID   int64       `db:"category_id" json:"category_id" foreign:"fk_category_languages_category_id" validate:"required"`
 	LanguageID   int64       `db:"language_id" json:"language_id" foreign:"fk_category_languages_language_id" validate:"required"`
-	SourceUserID int64       `db:"source_user_id" json:"source_user_id" foreign:"fk_category_languages_source_user_id"`
+	SourceUserID zero.Int    `db:"source_user_id" json:"source_user_id" foreign:"fk_category_languages_source_user_id"`
 	Title        string      `db:"title" json:"title" validate:"required,gte=3,lte=128"`
 	Description  zero.String `db:"description" json:"description"`
 	Slug         string      `db:"slug" json:"slug" validate:"required,gte=3,lte=200"`

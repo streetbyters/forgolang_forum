@@ -2,7 +2,7 @@ CREATE TABLE IF NOT EXISTS languages (
     id BIGSERIAL NOT NULL PRIMARY KEY,
     name varchar(64) NOT NULL,
     code varchar(10) NOT NULL,
-    date_format varchar(32),
+    date_format varchar(64),
     inserted_at TIMESTAMP WITHOUT TIME ZONE DEFAULT (CURRENT_TIMESTAMP at time zone 'utc'),
     updated_at TIMESTAMP WITHOUT TIME ZONE DEFAULT (CURRENT_TIMESTAMP at time zone 'utc')
 );
@@ -26,6 +26,8 @@ CREATE TABLE IF NOT EXISTS category_languages (
     CONSTRAINT fk_category_languages_source_user_id FOREIGN KEY (source_user_id)
         REFERENCES users(id) ON UPDATE cascade ON DELETE set null
 );
+
+CREATE INDEX IF NOT EXISTS category_languages_slug ON category_languages USING btree(lower(slug));
 
 CREATE TABLE IF NOT EXISTS tag_languages (
     id BIGSERIAL NOT NULL PRIMARY KEY,

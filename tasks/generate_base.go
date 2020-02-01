@@ -18,13 +18,17 @@ package tasks
 
 import (
 	"context"
+	"fmt"
 	"forgolang_forum/cmn"
+	"forgolang_forum/database/model"
+	"time"
 )
 
 const elasticBody = `{"settings":{"analysis":{"analyzer":{"default":{"tokenizer":"standard","filter":["ascii"]}},"filter":{"ascii":{"type":"asciifolding","preserve_original":true}}}}}`
 
 // GenerateBase artifacts
 func GenerateBase(app *cmn.App, args interface{}) error {
+	var language model.Language
 	app.Logger.LogInfo("Start generate base artifacts")
 
 	reset := GetArg("Reset", args).(bool)
@@ -35,6 +39,13 @@ func GenerateBase(app *cmn.App, args interface{}) error {
 			panic(err)
 		}
 		app.Logger.LogInfo("Reset elasticsearch indexes")
+
+		result := app.Database.Query(fmt.Sprintf("TRUNCATE TABLE %s RESTART IDENTITY CASCADE",
+			language.TableName()))
+		if result.Error != nil {
+			panic(err)
+		}
+		app.Logger.LogInfo("Reset languages")
 	}
 
 	//Generate elasticsearch indexes
@@ -53,6 +64,24 @@ func GenerateBase(app *cmn.App, args interface{}) error {
 		panic(err)
 	}
 	app.Logger.LogInfo("Generate elasticsearch indexes")
+
+	languageTR := model.NewLanguage()
+	languageTR.Code = "tr-TR"
+	languageTR.Name = "Turkce"
+	languageTR.DateFormat.SetValid(time.RFC3339Nano)
+	err = app.Database.Insert(new(model.Language), languageTR, "id")
+	if err != nil {
+		panic(err)
+	}
+
+	languageEN := model.NewLanguage()
+	languageEN.Code = "en-US"
+	languageEN.Name = "English (U.S)"
+	languageEN.DateFormat.SetValid(time.RFC3339Nano)
+	err = app.Database.Insert(new(model.Language), languageEN, "id")
+	if err != nil {
+		panic(err)
+	}
 
 	app.Logger.LogInfo("Finish generate base artifacts")
 	return nil

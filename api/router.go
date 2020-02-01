@@ -127,6 +127,10 @@ func NewRouter(api *API) *Router {
 				r.With(api.JWTAuth.Verify, CategoryPolicy{API: api}.Update).Put("/", cC.Update)
 				r.With(api.JWTAuth.Verify, CategoryPolicy{API: api}.Delete).Delete("/", cC.Delete)
 
+				// CategoryLanguage routes
+				r.With(api.JWTAuth.Verify, CategoryLanguagePolicy{API: api}.Create).
+					Post("/language", CategoryLanguageController{API: api}.Create)
+
 				// Category Post Routes
 				r.Group(func(r phi.Router) {
 					cpC := CategoryPostController{API: api}
@@ -144,6 +148,13 @@ func NewRouter(api *API) *Router {
 			}
 			router.Routes["CategoryController"]["moderator"] = []string{
 				"Update",
+			}
+			router.Routes["CategoryLanguageController"] = make(map[string][]string)
+			router.Routes["CategoryLanguageController"]["superadmin"] = []string{
+				"Create",
+			}
+			router.Routes["CategoryLanguageController"]["moderator"] = []string{
+				"Create",
 			}
 		})
 

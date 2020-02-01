@@ -176,16 +176,26 @@ func NewSuite() *Suite {
 	newAPI = NewAPI(newApp)
 
 	newApp.Cache.FlushDB()
-	err = tasks.GenerateRolePermissions(newApp, newAPI.Router.Routes)
+	taskArgs := make(map[string]interface{})
+	taskArgs["Router"] = newAPI.Router.Routes
+	taskArgs["Reset"] = true
+	err = tasks.GenerateRolePermissions(newApp, taskArgs)
 	if err != nil {
 		panic(err)
 	}
-	err = tasks.GenerateBase(newApp, map[string]interface{}{
-		"Reset": true,
-	})
+	err = tasks.GenerateBase(newApp, taskArgs)
 	if err != nil {
 		panic(err)
 	}
+
+	var language model2.Language
+	var languages []model2.Language
+	result := newAPI.GetDB().QueryWithModel(fmt.Sprintf(`
+		SELECT * FROM %s AS l ORDER BY l.id ASC
+	`, language.TableName()),
+		&languages)
+	cmn.FailOnError(defaultLogger, result.Error)
+	newAPI.Languages = languages
 
 	return &Suite{API: newAPI}
 }
