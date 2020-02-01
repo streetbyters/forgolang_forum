@@ -34,7 +34,6 @@ func (s CategoryLanguageControllerTest) Test_CreateCategoryLanguageWithValidPara
 
 	response := s.JSON(Post, fmt.Sprintf("/api/v1/category/%d/language",
 		category.ID), categoryLanguage)
-
 	s.Equal(response.Status, fasthttp.StatusCreated)
 
 	data, _ := response.Success.Data.(map[string]interface{})
