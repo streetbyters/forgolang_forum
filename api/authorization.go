@@ -68,14 +68,15 @@ func (m *Authorization) gen(controller, method string, ctx *fasthttp.RequestCtx)
 		controller,
 		method)).Result()
 	if err != nil {
-		err := m.App.Database.DB.QueryRow(fmt.Sprintf("SELECT r.id, r.code FROM %s AS ra "+
-			"LEFT OUTER JOIN %s AS ra2 ON ra.user_id = ra2.user_id and ra.id < ra2.id "+
-			"LEFT OUTER JOIN %s AS rai ON ra.id = rai.assignment_id "+
-			"INNER JOIN %s AS r ON ra.role_id = r.id "+
-			"INNER JOIN %s AS rp ON rp.role_id = r.id "+
-			"WHERE ra2.id IS NULL AND rai.assignment_id IS NULL AND "+
-			"rp.controller = $1 AND rp.method = $2 AND ra.user_id = $3 AND ra.role_id = $4",
-			roleAssignment.TableName(),
+		err := m.App.Database.DB.QueryRow(fmt.Sprintf(`
+				SELECT r.id, r.code FROM %s AS ra
+				LEFT OUTER JOIN %s AS ra2 ON ra.user_id = ra2.user_id and ra.id < ra2.id
+				LEFT OUTER JOIN %s AS rai ON ra.id = rai.assignment_id
+				INNER JOIN %s AS r ON ra.role_id = r.id
+				INNER JOIN %s AS rp ON rp.role_id = r.id
+				WHERE ra2.id IS NULL AND rai.assignment_id IS NULL AND
+					rp.controller = $1 AND rp.method = $2 AND ra.user_id = $3 AND ra.role_id = $4
+			`, roleAssignment.TableName(),
 			roleAssignment.TableName(),
 			roleAssignmentInvalidation.TableName(),
 			role.TableName(),

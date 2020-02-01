@@ -297,6 +297,10 @@ func NewRouter(api *API) *Router {
 					"Update",
 					"Delete",
 				}
+				router.Routes["UserController"]["moderator"] = []string{
+					"Show",
+					"Update",
+				}
 				router.Routes["UserController"]["user"] = []string{
 					"Show",
 					"Update",

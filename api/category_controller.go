@@ -134,9 +134,13 @@ func (c CategoryController) Show(ctx *fasthttp.RequestCtx) {
 	var category model.Category
 
 	var cs string
-	if err := c.App.Cache.Get(fmt.Sprintf("%s:%s",
+	err := c.App.Cache.Get(fmt.Sprintf("%s:%s",
 		cmn.GetRedisKey("category", "one"),
-		phi.URLParam(ctx, "categoryID"))).Scan(&cs); err == nil {
+		phi.URLParam(ctx, "categoryID"))).Scan(&cs)
+	err2 := c.App.Cache.Get(fmt.Sprintf("%s:%s",
+		cmn.GetRedisKey("category", "slug"),
+		phi.URLParam(ctx, "categoryID"))).Scan(&cs)
+	if err == nil || err2 == nil {
 		json.Unmarshal([]byte(cs), &category)
 
 		var categoryLanguages []model.CategoryLanguage
@@ -158,7 +162,7 @@ func (c CategoryController) Show(ctx *fasthttp.RequestCtx) {
 	}
 
 	c.GetDB().QueryRowWithModel(fmt.Sprintf(`
-			SELECT c.* FROM %s AS c WHERE id = $1 
+			SELECT c.* FROM %s AS c WHERE id::text = $1::text OR slug::text = $1::text
 		`, c.Model.TableName()),
 		&category,
 		phi.URLParam(ctx, "categoryID")).Force()
