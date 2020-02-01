@@ -58,6 +58,10 @@ func (c PostDetailController) Create(ctx *fasthttp.RequestCtx) {
 		return
 	}
 
+	postDetail.Title = c.App.TextPolicy.Sanitize(postDetail.Title)
+	postDetail.Description.SetValid(c.App.TextPolicy.Sanitize(postDetail.Description.String))
+	postDetail.Content = c.App.TextPolicy.Sanitize(postDetail.Content)
+
 	postSlug := model2.NewPostSlug(postID, c.GetAuthContext(ctx).ID)
 	errs := make(map[string]string)
 	c.GetDB().Transaction(func(tx *database.Tx) error {

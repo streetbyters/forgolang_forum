@@ -174,6 +174,17 @@ func NewRouter(api *API) *Router {
 				pcaC := PostCategoryAssignmentController{API: api}
 				r.With(api.JWTAuth.Verify, PostCategoryAssignmentPolicy{API: api}.Create).Post("/category_assignment",
 					pcaC.Create)
+
+				r.Get("/comment", PostCommentController{API: api}.Index)
+				r.With(api.JWTAuth.Verify, PostCommentPolicy{API: api}.Create).Post("/comment",
+					PostCommentController{API: api}.Create)
+				r.Route("/comment/{commentID}", func(r phi.Router) {
+					r.With(api.JWTAuth.Verify, PostCommentPolicy{API: api}.Delete).Delete("/",
+						PostCommentController{API: api}.Delete)
+
+					r.With(api.JWTAuth.Verify, PostCommentDetailPolicy{API: api}.Create).
+						Post("/detail", PostCommentDetailController{API: api}.Create)
+				})
 			})
 		})
 		router.Routes["PostController"] = make(map[string][]string)
@@ -211,6 +222,29 @@ func NewRouter(api *API) *Router {
 			"Create",
 		}
 		router.Routes["PostCategoryAssignmentController"]["user"] = []string{
+			"Create",
+		}
+		router.Routes["PostCommentController"] = make(map[string][]string)
+		router.Routes["PostCommentController"]["superadmin"] = []string{
+			"Create",
+			"Delete",
+		}
+		router.Routes["PostCommentController"]["moderator"] = []string{
+			"Create",
+			"Delete",
+		}
+		router.Routes["PostCommentController"]["user"] = []string{
+			"Create",
+			"Delete",
+		}
+		router.Routes["PostCommentDetailController"] = make(map[string][]string)
+		router.Routes["PostCommentDetailController"]["superadmin"] = []string{
+			"Create",
+		}
+		router.Routes["PostCommentDetailController"]["moderator"] = []string{
+			"Create",
+		}
+		router.Routes["PostCommentDetailController"]["user"] = []string{
 			"Create",
 		}
 
