@@ -1,4 +1,4 @@
-// Copyright 2019 Abdulkadir Dilsiz - Çağatay Yücelen
+// Copyright 2019 Forgolang Community
 // Licensed to the Apache Software Foundation (ASF) under one or more
 // contributor license agreements.  See the NOTICE file distributed with
 // this work for additional information regarding copyright ownership.
@@ -43,18 +43,18 @@ func (s UserControllerTest) Test_ListAllUsers() {
 		user.Email = fmt.Sprintf("new-user%d@mail.com", i)
 		user.IsActive = true
 
-		err := s.API.App.Database.Insert(new(model.User), user, "id")
+		err := s.API.GetDB().Insert(new(model.User), user, "id")
 		s.Nil(err)
 
 		roleAssignment := model.NewUserRoleAssignment(user.ID, 3)
 		roleAssignment.SourceUserID.SetValid(user.ID)
-		err = s.API.App.Database.Insert(new(model.UserRoleAssignment), roleAssignment, "id")
+		err = s.API.GetDB().Insert(new(model.UserRoleAssignment), roleAssignment, "id")
 		s.Nil(err)
 
 		userState := model.NewUserState(user.ID)
 		userState.State = database.Active
 		userState.SourceUserID.SetValid(user.ID)
-		err = s.API.App.Database.Insert(new(model.UserState), userState, "id")
+		err = s.API.GetDB().Insert(new(model.UserState), userState, "id")
 		s.Nil(err)
 	}
 
@@ -72,7 +72,7 @@ func (s UserControllerTest) Test_ShowUserWithGivenIdentifier() {
 	user.Username = "show-user"
 	user.Email = "show-user@mail.com"
 	user.IsActive = true
-	err := s.API.App.Database.Insert(new(model.User),
+	err := s.API.GetDB().Insert(new(model.User),
 		user,
 		"id", "inserted_at", "updated_at")
 	s.Nil(err)
@@ -99,7 +99,7 @@ func (s UserControllerTest) Test_ShowCachedUserWithGivenIdentifier() {
 	user.Username = "show-user2"
 	user.Email = "show-user2@mail.com"
 	user.IsActive = true
-	err := s.API.App.Database.Insert(new(model.User),
+	err := s.API.GetDB().Insert(new(model.User),
 		user,
 		"id", "inserted_at", "updated_at")
 	s.Nil(err)
@@ -176,7 +176,7 @@ func (s UserControllerTest) Test_Should_422Error_CreateUserWithValidParamsIFEmai
 	user.Username = "create-user2"
 	user.Password = "123456"
 	user.IsActive = true
-	err := s.API.App.Database.Insert(new(model.User), user, "id")
+	err := s.API.GetDB().Insert(new(model.User), user, "id")
 	s.Nil(err)
 
 	user = new(model.User)
@@ -199,7 +199,7 @@ func (s UserControllerTest) Test_UpdateUserWithGivenIdentifierAndValidParams() {
 	user.Username = "update-user"
 	user.Password = "123456"
 	user.IsActive = true
-	err := s.API.App.Database.Insert(new(model.User), user, "id")
+	err := s.API.GetDB().Insert(new(model.User), user, "id")
 	s.Nil(err)
 
 	userRequest := new(model.User)
@@ -229,7 +229,7 @@ func (s UserControllerTest) Test_Should_422Error_UpdateUserWithGivenIdentifierAn
 	user.Username = "update-user2"
 	user.Password = "123456"
 	user.IsActive = true
-	err := s.API.App.Database.Insert(new(model.User), user, "id")
+	err := s.API.GetDB().Insert(new(model.User), user, "id")
 	s.Nil(err)
 
 	userRequest := new(model.User)
@@ -251,7 +251,7 @@ func (s UserControllerTest) Test_Should_422Error_UpdateUserWithGivenIdentifierAn
 	user.Username = "update-user3"
 	user.Password = "123456"
 	user.IsActive = true
-	err := s.API.App.Database.Insert(new(model.User), user, "id")
+	err := s.API.GetDB().Insert(new(model.User), user, "id")
 	s.Nil(err)
 
 	user = new(model.User)
@@ -259,7 +259,7 @@ func (s UserControllerTest) Test_Should_422Error_UpdateUserWithGivenIdentifierAn
 	user.Username = "update-user4"
 	user.Password = "123456"
 	user.IsActive = true
-	err = s.API.App.Database.Insert(new(model.User), user, "id")
+	err = s.API.GetDB().Insert(new(model.User), user, "id")
 	s.Nil(err)
 
 	userRequest := new(model.User)
@@ -281,7 +281,7 @@ func (s UserControllerTest) Test_DeleteUserWithGivenIdentifier() {
 	user.Username = "delete-user"
 	user.Email = "delete-user@mail.com"
 	user.IsActive = true
-	err := s.API.App.Database.Insert(new(model.User),
+	err := s.API.GetDB().Insert(new(model.User),
 		user,
 		"id", "inserted_at", "updated_at")
 	s.Nil(err)

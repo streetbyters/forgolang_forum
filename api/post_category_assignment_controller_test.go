@@ -20,7 +20,7 @@ func (s PostCategoryAssignmentControllerTest) SetupSuite() {
 
 func (s PostCategoryAssignmentControllerTest) Test_CreatePostCategoryAssignmentWithValidParams() {
 	post := model.NewPost(s.Auth.User.ID)
-	err := s.API.App.Database.Insert(new(model.Post), post, "id")
+	err := s.API.GetDB().Insert(new(model.Post), post, "id")
 	s.Nil(err)
 
 	postDep := new(model.PostDEP)
@@ -36,7 +36,7 @@ func (s PostCategoryAssignmentControllerTest) Test_CreatePostCategoryAssignmentW
 	category := model.NewCategory()
 	category.Title = "category-1"
 	category.Slug = "category-1"
-	err = s.API.App.Database.Insert(new(model.Category), category, "id")
+	err = s.API.GetDB().Insert(new(model.Category), category, "id")
 	s.Nil(err)
 
 	categoryAssignment := new(model.PostCategoryAssignment)

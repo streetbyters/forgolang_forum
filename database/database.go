@@ -1,4 +1,4 @@
-// Copyright 2019 Abdulkadir Dilsiz - Çağatay Yücelen
+// Copyright 2019 Forgolang Community
 // Licensed to the Apache Software Foundation (ASF) under one or more
 // contributor license agreements.  See the NOTICE file distributed with
 // this work for additional information regarding copyright ownership.
@@ -470,7 +470,7 @@ func (d *Database) query(query string, target interface{}, params ...interface{}
 	return result
 }
 
-// QueryRowWithModel database row query builder with target model
+// QdueryRowWithModel database row query builder with target model
 func (d *Database) QueryRowWithModel(query string, target interface{}, params ...interface{}) Result {
 	return d.queryRow(query, target, params...)
 }
@@ -515,6 +515,7 @@ func (d *Database) queryRow(query string, target interface{}, params ...interfac
 func newDB(d *Database) *Database {
 	nD := new(Database)
 	nD.DB = d.DB
+	nD.Tx = d.Tx
 	nD.Config = d.Config
 	nD.Type = d.Type
 	nD.Logger = d.Logger
@@ -545,6 +546,8 @@ func (t *Tx) Select(table string, whereClause string) Result {
 
 // Insert query builder by database type
 func (d *Database) Insert(m DBInterface, data interface{}, keys ...string) error {
+	d2 := newDB(d)
+
 	if reflect.ValueOf(m).MethodByName("Timestamps").IsValid() {
 		in := reflect.ValueOf(data).Elem().FieldByName("InsertedAt")
 		if in.IsValid() && in.CanSet() {
@@ -558,37 +561,37 @@ func (d *Database) Insert(m DBInterface, data interface{}, keys ...string) error
 
 	_, c1, _ := GetChanges(m, data, "insert")
 
-	d.QueryType = "insert"
+	d2.QueryType = "insert"
 
 	str, _ := insertSQL(c1, m.TableName(), strings.Join(keys, ", "))
 
 	var stmt *sqlx.NamedStmt
 	var err error
 
-	if d.SelfTX {
-		stmt, err = d.Tx.PrepareNamed(str)
+	if d2.SelfTX {
+		stmt, err = d2.Tx.PrepareNamed(str)
 	} else {
-		stmt, err = d.DB.PrepareNamed(str)
+		stmt, err = d2.DB.PrepareNamed(str)
 	}
 
 	if err != nil {
-		d.Error = err
+		d2.Error = err
 		return err
 	}
 
 	if err := stmt.QueryRowx(data).StructScan(data); err != nil {
-		if d.SelfTX {
-			d.rollback()
+		if d2.SelfTX {
+			d2.rollback()
 		}
-		d.Error = err
+		d2.Error = err
 		return err
 	}
 
 	if err := stmt.Close(); err != nil {
-		if d.SelfTX {
-			d.rollback()
+		if d2.SelfTX {
+			d2.rollback()
 		}
-		d.Error = err
+		d2.Error = err
 		return err
 	}
 
@@ -597,6 +600,7 @@ func (d *Database) Insert(m DBInterface, data interface{}, keys ...string) error
 
 // Update query builder by database type
 func (d *Database) Update(m DBInterface, data interface{}, whereClause *string, keys ...string) error {
+	d2 := newDB(d)
 	id := reflect.ValueOf(reflect.ValueOf(m).Interface()).Elem().FieldByName("ID").Int()
 	reflect.ValueOf(data).Elem().FieldByName("ID").SetInt(id)
 
@@ -613,7 +617,7 @@ func (d *Database) Update(m DBInterface, data interface{}, whereClause *string, 
 
 	_, c1, _ := GetChanges(m, data, "update")
 
-	d.QueryType = "update"
+	d2.QueryType = "update"
 
 	var where string
 	if whereClause != nil {
@@ -627,29 +631,29 @@ func (d *Database) Update(m DBInterface, data interface{}, whereClause *string, 
 	var stmt *sqlx.NamedStmt
 	var err error
 
-	if d.SelfTX {
-		stmt, err = d.Tx.PrepareNamed(str)
+	if d2.SelfTX {
+		stmt, err = d2.Tx.PrepareNamed(str)
 	} else {
-		stmt, err = d.DB.PrepareNamed(str)
+		stmt, err = d2.DB.PrepareNamed(str)
 	}
 
 	if err != nil {
-		d.Error = err
+		d2.Error = err
 		return err
 	}
 
 	if err := stmt.QueryRowx(data).StructScan(data); err != nil {
-		d.Error = err
-		if d.SelfTX {
-			d.rollback()
+		d2.Error = err
+		if d2.SelfTX {
+			d2.rollback()
 		}
 		return err
 	}
 
 	if err := stmt.Close(); err != nil {
-		d.Error = err
-		if d.SelfTX {
-			d.rollback()
+		d2.Error = err
+		if d2.SelfTX {
+			d2.rollback()
 		}
 
 		return err
@@ -660,11 +664,12 @@ func (d *Database) Update(m DBInterface, data interface{}, whereClause *string, 
 
 // Delete query build by database type
 func (d *Database) Delete(table string, whereClause string, args ...interface{}) Result {
+	d2 := newDB(d)
 	result := Result{}
 	result.QueryType = "row"
 
-	if d.SelfTX {
-		res, err := d.Tx.Exec(fmt.Sprintf("DELETE FROM %s", table)+" WHERE "+whereClause, args...)
+	if d2.SelfTX {
+		res, err := d2.Tx.Exec(fmt.Sprintf("DELETE FROM %s", table)+" WHERE "+whereClause, args...)
 		result.Error = err
 		if err != nil {
 			return result
@@ -677,7 +682,7 @@ func (d *Database) Delete(table string, whereClause string, args ...interface{})
 		return result
 	}
 
-	res, err := d.DB.Exec(fmt.Sprintf("DELETE FROM %s", table)+" WHERE "+whereClause, args...)
+	res, err := d2.DB.Exec(fmt.Sprintf("DELETE FROM %s", table)+" WHERE "+whereClause, args...)
 	if err != nil {
 		result.Error = err
 		return result

@@ -1,4 +1,4 @@
-// Copyright 2019 Abdulkadir Dilsiz - Çağatay Yücelen
+// Copyright 2019 Forgolang Community
 // Licensed to the Apache Software Foundation (ASF) under one or more
 // contributor license agreements.  See the NOTICE file distributed with
 // this work for additional information regarding copyright ownership.
@@ -105,6 +105,7 @@ func main() {
 		EnvFile:            configFile,
 		Path:               appPath,
 		Prefix:             viper.GetString("PREFIX"),
+		Lang:               viper.GetString("LANG"),
 		UIHost:             viper.GetString("UI_HOST"),
 		Host:               viper.GetString("HOST"),
 		Port:               viper.GetInt("PORT"),

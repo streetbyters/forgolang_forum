@@ -1,4 +1,4 @@
-// Copyright 2019 Abdulkadir Dilsiz - Çağatay Yücelen
+// Copyright 2019 Forgolang Community
 // Licensed to the Apache Software Foundation (ASF) under one or more
 // contributor license agreements.  See the NOTICE file distributed with
 // this work for additional information regarding copyright ownership.
@@ -20,10 +20,15 @@ import (
 	"bytes"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"forgolang_forum/cmn"
+	"forgolang_forum/database"
+	model2 "forgolang_forum/database/model"
 	"forgolang_forum/model"
 	"forgolang_forum/utils"
 	pluggableError "github.com/akdilsiz/agente/errors"
+	"github.com/go-redis/redis"
+	"github.com/olivere/elastic/v7"
 	"github.com/valyala/fasthttp"
 	"net/url"
 	"strconv"
@@ -31,10 +36,11 @@ import (
 
 // API rest api structure
 type API struct {
-	App           *cmn.App
-	Router        *Router
-	JWTAuth       *JWTAuth
-	Authorization *Authorization
+	App             *cmn.App
+	Router          *Router
+	JWTAuth         *JWTAuth
+	Authorization   *Authorization
+	Languages       []model2.Language
 }
 
 // NewAPI building api
@@ -43,6 +49,15 @@ func NewAPI(app *cmn.App) *API {
 	api.JWTAuth = NewJWTAuth(api)
 	api.Authorization = NewAuthorization(api)
 	api.Router = NewRouter(api)
+
+	var language model2.Language
+	var languages []model2.Language
+	result := api.GetDB().QueryWithModel(fmt.Sprintf(`
+		SELECT * FROM %s AS l ORDER BY l.id ASC
+	`, language.TableName()),
+		&languages)
+	cmn.FailOnError(api.App.Logger, result.Error)
+	api.Languages = languages
 
 	return api
 }
@@ -113,6 +128,55 @@ func (a *API) Paginate(ctx *fasthttp.RequestCtx, orderFields ...string) (model.P
 // GetAuthContext get auth context request
 func (a *API) GetAuthContext(ctx *fasthttp.RequestCtx) *model.AuthContext {
 	return ctx.UserValue("AuthContext").(*model.AuthContext)
+}
+
+// GetLanguageContext get default language context
+func (a *API) GetLanguageContext(ctx *fasthttp.RequestCtx) *model2.Language {
+	return ctx.UserValue("Language").(*model2.Language)
+}
+
+func (a *API) SetLanguageContext(code string, ctx *fasthttp.RequestCtx) *fasthttp.RequestCtx {
+	if l := a.GetLanguage(code); l != nil {
+		ctx.SetUserValue("Language", l)
+		return ctx
+	}
+
+	ctx.SetUserValue("Language", a.GetLanguage(a.App.Config.Lang))
+	return ctx
+}
+
+// GetDB api database getter
+func (a *API) GetDB() *database.Database {
+	return a.App.Database
+}
+
+// GetLanguage api language getter with given code
+func (a *API) GetLanguage(code string) *model2.Language {
+	exists := false
+	language := model2.NewLanguage()
+	for _, l := range a.Languages {
+		if l.Code == code {
+			language = &l
+			exists = !exists
+			break
+		}
+	}
+
+	if exists {
+		return language
+	}
+
+	return nil
+}
+
+// GetElastic api elastic search getter
+func (a *API) GetElastic() *elastic.Client {
+	return a.App.ElasticClient
+}
+
+// GetCache api redis getter
+func (a *API) GetCache() *redis.Client {
+	return a.App.Cache
 }
 
 // JSONBody parse given model request body

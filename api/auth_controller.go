@@ -1,5 +1,5 @@
 // +build !test
-// Copyright 2019 Abdulkadir Dilsiz - Çağatay Yücelen
+// Copyright 2019 Forgolang Community
 // Licensed to the Apache Software Foundation (ASF) under one or more
 // contributor license agreements.  See the NOTICE file distributed with
 // this work for additional information regarding copyright ownership.
@@ -45,7 +45,7 @@ func (c AuthController) Github(ctx *fasthttp.RequestCtx) {
 func (c AuthController) GithubCallback(ctx *fasthttp.RequestCtx) {
 	var thirdParty model2.ThirdParty
 
-	c.App.Database.QueryRowWithModel(fmt.Sprintf("SELECT t.* FROM %s AS t "+
+	c.GetDB().QueryRowWithModel(fmt.Sprintf("SELECT t.* FROM %s AS t "+
 		"WHERE t.code = 'github' AND t.type = 'auth' AND t.is_active = true",
 		thirdParty.TableName()),
 		&thirdParty).Force()
@@ -82,7 +82,7 @@ func (c AuthController) GithubCallback(ctx *fasthttp.RequestCtx) {
 	user.IsActive = true
 
 	passphrase := model2.NewUserPassphrase(0)
-	db := c.App.Database.Transaction(func(tx *database.Tx) error {
+	db := c.GetDB().Transaction(func(tx *database.Tx) error {
 		var currentUser model2.User
 		tx.DB.QueryRowWithModel(fmt.Sprintf("SELECT u.* FROM %s AS u "+
 			"WHERE u.email = $1",

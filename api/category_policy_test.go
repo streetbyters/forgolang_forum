@@ -38,7 +38,7 @@ func (s CategoryPolicyTest) Test_Should_UpdateCategoryWithValidParamsAndModerato
 	category.Title = "Category / Edit"
 	category.Description.SetValid("Description")
 	category.Slug = slug.Make(category.Title)
-	err := s.API.App.Database.Insert(new(model.Category), category, "id")
+	err := s.API.GetDB().Insert(new(model.Category), category, "id")
 	s.Nil(err)
 
 	categoryR := model.NewCategory()
@@ -60,7 +60,7 @@ func (s CategoryPolicyTest) Test_Should_403Error_UpdateCategoryWithValidParamsAn
 	category.Title = "Category 23"
 	category.Description.SetValid("Description")
 	category.Slug = slug.Make(category.Title)
-	err := s.API.App.Database.Insert(new(model.Category), category, "id")
+	err := s.API.GetDB().Insert(new(model.Category), category, "id")
 	s.Nil(err)
 
 	category = model.NewCategory()
@@ -81,7 +81,7 @@ func (s CategoryPolicyTest) Test_Should_403Error_DeleteCategoryWithGivenIdentifi
 	category.Title = "Category 2435"
 	category.Description.SetValid("Description")
 	category.Slug = slug.Make(category.Title)
-	err := s.API.App.Database.Insert(new(model.Category), category, "id")
+	err := s.API.GetDB().Insert(new(model.Category), category, "id")
 	s.Nil(err)
 
 	resp := s.JSON(Delete, fmt.Sprintf("/api/v1/category/%d", category.ID), nil)

@@ -33,7 +33,7 @@ func (s UserPolicyTest) Test_Should_403Err_ShowUserWithUserRoleIfOtherUserIdenti
 	user.Username = "policy-user"
 	user.Email = "policy-user@mail.com"
 	user.IsActive = true
-	err := s.API.App.Database.Insert(new(model.User),
+	err := s.API.GetDB().Insert(new(model.User),
 		user,
 		"id", "inserted_at", "updated_at")
 	s.Nil(err)
@@ -79,7 +79,7 @@ func (s UserPolicyTest) Test_Should_403Err_UpdateWithGivenIdentifierAndValidPara
 	user.Username = "policy-user-3"
 	user.Email = "policy-user3@mail.com"
 	user.IsActive = true
-	err := s.API.App.Database.Insert(new(model.User),
+	err := s.API.GetDB().Insert(new(model.User),
 		user,
 		"id", "inserted_at", "updated_at")
 	s.Nil(err)
@@ -122,7 +122,7 @@ func (s UserPolicyTest) Test_Should_403Err_DeleteUserWithGivenIdentifierAndUserR
 	user.Username = "policy-user-4"
 	user.Email = "policy-user4@mail.com"
 	user.IsActive = true
-	err := s.API.App.Database.Insert(new(model.User),
+	err := s.API.GetDB().Insert(new(model.User),
 		user,
 		"id", "inserted_at", "updated_at")
 	s.Nil(err)

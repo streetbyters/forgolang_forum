@@ -1,4 +1,4 @@
-// Copyright 2019 Abdulkadir Dilsiz - Çağatay Yücelen
+// Copyright 2019 Forgolang Community
 // Licensed to the Apache Software Foundation (ASF) under one or more
 // contributor license agreements.  See the NOTICE file distributed with
 // this work for additional information regarding copyright ownership.
@@ -27,12 +27,7 @@ import (
 
 // GenerateRolePermissions generate role permissions for api controller and methods
 func GenerateRolePermissions(app *cmn.App, args interface{}) error {
-	var apiRoutes map[string]map[string][]string
-	if app.Mode == model2.Test {
-		apiRoutes = args.(map[string]map[string][]string)
-	} else {
-		apiRoutes = GetArg("Router", args).(map[string]map[string][]string)
-	}
+	apiRoutes := GetArg("Router", args).(map[string]map[string][]string)
 
 	role := model.NewRole()
 	var roles []model.Role

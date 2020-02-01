@@ -1,4 +1,4 @@
-// Copyright 2019 Abdulkadir Dilsiz - Çağatay Yücelen
+// Copyright 2019 Forgolang Community
 // Licensed to the Apache Software Foundation (ASF) under one or more
 // contributor license agreements.  See the NOTICE file distributed with
 // this work for additional information regarding copyright ownership.
@@ -18,41 +18,70 @@ package tasks
 
 import (
 	"context"
+	"fmt"
 	"forgolang_forum/cmn"
+	"forgolang_forum/database/model"
+	"time"
 )
 
 const elasticBody = `{"settings":{"analysis":{"analyzer":{"default":{"tokenizer":"standard","filter":["ascii"]}},"filter":{"ascii":{"type":"asciifolding","preserve_original":true}}}}}`
 
 // GenerateBase artifacts
 func GenerateBase(app *cmn.App, args interface{}) error {
+	var language model.Language
 	app.Logger.LogInfo("Start generate base artifacts")
 
 	reset := GetArg("Reset", args).(bool)
 
 	if reset {
-		resp, err := app.ElasticClient.DeleteIndex("users", "posts").Do(context.Background())
-		if err != nil || !resp.Acknowledged {
+		_, err := app.ElasticClient.DeleteIndex("users", "posts").Do(context.TODO())
+		if err != nil {
 			panic(err)
 		}
 		app.Logger.LogInfo("Reset elasticsearch indexes")
+
+		result := app.Database.Query(fmt.Sprintf("TRUNCATE TABLE %s RESTART IDENTITY CASCADE",
+			language.TableName()))
+		if result.Error != nil {
+			panic(result.Error)
+		}
+		app.Logger.LogInfo("Reset languages")
 	}
 
 	//Generate elasticsearch indexes
 	_, err := app.ElasticClient.
 		CreateIndex("users").
 		Body(elasticBody).
-		Do(context.Background())
+		Do(context.TODO())
 	if err != nil {
 		panic(err)
 	}
 	_, err = app.ElasticClient.
 		CreateIndex("posts").
 		Body(elasticBody).
-		Do(context.Background())
+		Do(context.TODO())
 	if err != nil {
 		panic(err)
 	}
 	app.Logger.LogInfo("Generate elasticsearch indexes")
+
+	languageTR := model.NewLanguage()
+	languageTR.Code = "tr-TR"
+	languageTR.Name = "Turkce"
+	languageTR.DateFormat.SetValid(time.RFC3339Nano)
+	err = app.Database.Insert(new(model.Language), languageTR, "id")
+	if err != nil {
+		panic(err)
+	}
+
+	languageEN := model.NewLanguage()
+	languageEN.Code = "en-US"
+	languageEN.Name = "English (U.S)"
+	languageEN.DateFormat.SetValid(time.RFC3339Nano)
+	err = app.Database.Insert(new(model.Language), languageEN, "id")
+	if err != nil {
+		panic(err)
+	}
 
 	app.Logger.LogInfo("Finish generate base artifacts")
 	return nil

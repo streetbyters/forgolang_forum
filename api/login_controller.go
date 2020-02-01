@@ -1,4 +1,4 @@
-// Copyright 2019 Abdulkadir Dilsiz - Çağatay Yücelen
+// Copyright 2019 Forgolang Community
 // Licensed to the Apache Software Foundation (ASF) under one or more
 // contributor license agreements.  See the NOTICE file distributed with
 // this work for additional information regarding copyright ownership.
@@ -47,7 +47,7 @@ func (c LoginController) Create(ctx *fasthttp.RequestCtx) {
 	roleAssignment := new(model2.UserRoleAssignment)
 	userModel := new(model2.User)
 	userState := new(model2.UserState)
-	c.App.Database.QueryRowWithModel(fmt.Sprintf(
+	c.GetDB().QueryRowWithModel(fmt.Sprintf(
 		"SELECT u.* FROM %s AS u "+
 			"INNER JOIN %s AS ra ON u.id = ra.user_id "+
 			"LEFT OUTER JOIN %s AS ra2 ON ra.user_id = ra2.user_id and ra.id < ra2.id "+
@@ -70,7 +70,7 @@ func (c LoginController) Create(ctx *fasthttp.RequestCtx) {
 
 	userPassphrase := new(model2.UserPassphrase)
 	userPassphraseModel := model2.NewUserPassphrase(userModel.ID)
-	c.App.Database.Insert(userPassphrase,
+	c.GetDB().Insert(userPassphrase,
 		userPassphraseModel, "id", "inserted_at")
 
 	c.JSONResponse(ctx, model.ResponseSuccessOne{

@@ -1,4 +1,4 @@
-// Copyright 2019 Abdulkadir Dilsiz - Çağatay Yücelen
+// Copyright 2019 Forgolang Community
 // Licensed to the Apache Software Foundation (ASF) under one or more
 // contributor license agreements.  See the NOTICE file distributed with
 // this work for additional information regarding copyright ownership.
@@ -47,7 +47,7 @@ type Router struct {
 var (
 	prefix           string
 	reqID            uint64
-	allowHeaders     = "Accept, Content-Type, Content-Length, Accept-Encoding, X-CSRF-Token, Authorization"
+	allowHeaders     = "Accept, Content-Type, Content-Length, Accept-Encoding, X-CSRF-Token, Authorization, X-Forgolang-Lang"
 	allowMethods     = "HEAD,GET,POST,PUT,DELETE,OPTIONS"
 	allowOrigin      = "*"
 	allowCredentials = "true"
@@ -91,6 +91,7 @@ func NewRouter(api *API) *Router {
 	r.Use(router.logger)
 	r.Use(router.cors)
 	r.Use(rateMiddleware.Handle)
+	r.Use(router.language)
 
 	r.NotFound(router.notFound)
 	r.MethodNotAllowed(router.methodNotAllowed)
@@ -113,6 +114,105 @@ func NewRouter(api *API) *Router {
 			r.Get("/github", AuthController{API: api}.Github)
 			r.Get("/github/callback", AuthController{API: api}.GithubCallback)
 		})
+
+		r.Get("/category", CategoryController{API: api}.Index)
+		r.Get("/category/{categoryID}", CategoryController{API: api}.Show)
+
+		// Category routes
+		r.Group(func(r phi.Router) {
+			cC := CategoryController{API: api}
+			r.Get("/category", cC.Index)
+			r.With(api.JWTAuth.Verify, CategoryPolicy{API: api}.Create).Post("/category", cC.Create)
+			r.Route("/category/{categoryID}", func(r phi.Router) {
+				r.Get("/", cC.Show)
+				r.With(api.JWTAuth.Verify, CategoryPolicy{API: api}.Update).Put("/", cC.Update)
+				r.With(api.JWTAuth.Verify, CategoryPolicy{API: api}.Delete).Delete("/", cC.Delete)
+
+				// CategoryLanguage routes
+				r.With(api.JWTAuth.Verify, CategoryLanguagePolicy{API: api}.Create).
+					Post("/language", CategoryLanguageController{API: api}.Create)
+
+				// Category Post Routes
+				r.Group(func(r phi.Router) {
+					cpC := CategoryPostController{API: api}
+					r.Get("/post", cpC.Index)
+					r.Route("/post/{postID}", func(r phi.Router) {
+						r.Get("/", cpC.Show)
+					})
+				})
+			})
+			router.Routes["CategoryController"] = make(map[string][]string)
+			router.Routes["CategoryController"]["superadmin"] = []string{
+				"Create",
+				"Update",
+				"Delete",
+			}
+			router.Routes["CategoryController"]["moderator"] = []string{
+				"Update",
+			}
+			router.Routes["CategoryLanguageController"] = make(map[string][]string)
+			router.Routes["CategoryLanguageController"]["superadmin"] = []string{
+				"Create",
+			}
+			router.Routes["CategoryLanguageController"]["moderator"] = []string{
+				"Create",
+			}
+		})
+
+		// Post Routes
+		r.Group(func(r phi.Router) {
+			pC := PostController{API: api}
+			r.With(api.JWTAuth.Verify, PostPolicy{API: api}.Create).Post("/post", pC.Create)
+			r.Route("/post/{postID}", func(r phi.Router) {
+				r.With(api.JWTAuth.Verify, PostPolicy{API: api}.Delete).Delete("/", pC.Delete)
+				psC := PostSlugController{API: api}
+				r.With(api.JWTAuth.Verify, PostSlugPolicy{API: api}.Create).Post("/slug", psC.Create)
+
+				pdC := PostDetailController{API: api}
+				r.With(api.JWTAuth.Verify, PostDetailPolicy{API: api}.Create).Post("/detail", pdC.Create)
+
+				pcaC := PostCategoryAssignmentController{API: api}
+				r.With(api.JWTAuth.Verify, PostCategoryAssignmentPolicy{API: api}.Create).Post("/category_assignment",
+					pcaC.Create)
+			})
+		})
+		router.Routes["PostController"] = make(map[string][]string)
+		router.Routes["PostController"]["superadmin"] = []string{
+			"Create",
+			"Delete",
+		}
+		router.Routes["PostController"]["moderator"] = []string{
+			"Create",
+			"Delete",
+		}
+		router.Routes["PostController"]["user"] = []string{
+			"Create",
+			"Delete",
+		}
+		router.Routes["PostSlugController"] = make(map[string][]string)
+		router.Routes["PostSlugController"]["superadmin"] = []string{
+			"Create",
+		}
+		router.Routes["PostDetailController"] = make(map[string][]string)
+		router.Routes["PostDetailController"]["superadmin"] = []string{
+			"Create",
+		}
+		router.Routes["PostDetailController"]["moderator"] = []string{
+			"Create",
+		}
+		router.Routes["PostDetailController"]["user"] = []string{
+			"Create",
+		}
+		router.Routes["PostCategoryAssignmentController"] = make(map[string][]string)
+		router.Routes["PostCategoryAssignmentController"]["superadmin"] = []string{
+			"Create",
+		}
+		router.Routes["PostCategoryAssignmentController"]["moderator"] = []string{
+			"Create",
+		}
+		router.Routes["PostCategoryAssignmentController"]["user"] = []string{
+			"Create",
+		}
 
 		r.Group(func(r phi.Router) {
 			r.Use(api.JWTAuth.Verify)
@@ -166,93 +266,6 @@ func NewRouter(api *API) *Router {
 				router.Routes["UserController"]["user"] = []string{
 					"Show",
 					"Update",
-				}
-			})
-
-			// Category routes
-			r.Group(func(r phi.Router) {
-				cC := CategoryController{API: api}
-				r.Get("/category", cC.Index)
-				r.With(CategoryPolicy{API: api}.Create).Post("/category", cC.Create)
-				r.Route("/category/{categoryID}", func(r phi.Router) {
-					r.Get("/", cC.Show)
-					r.With(CategoryPolicy{API: api}.Update).Put("/", cC.Update)
-					r.With(CategoryPolicy{API: api}.Delete).Delete("/", cC.Delete)
-				})
-				router.Routes["CategoryController"] = make(map[string][]string)
-				router.Routes["CategoryController"]["superadmin"] = []string{
-					"Index",
-					"Create",
-					"Show",
-					"Update",
-					"Delete",
-				}
-				router.Routes["CategoryController"]["moderator"] = []string{
-					"Index",
-					"Show",
-					"Update",
-				}
-				router.Routes["CategoryController"]["user"] = []string{
-					"Index",
-					"Show",
-				}
-			})
-
-			// Post Routes
-			r.Group(func(r phi.Router) {
-				pC := PostController{API: api}
-				r.Get("/post", pC.Index)
-				r.With(PostPolicy{API: api}.Create).Post("/post", pC.Create)
-				r.Route("/post/{postID}", func(r phi.Router) {
-					r.Get("/", pC.Show)
-					r.With(PostPolicy{API: api}.Delete).Delete("/", pC.Delete)
-
-					psC := PostSlugController{API: api}
-					r.With(PostSlugPolicy{API: api}.Create).Post("/slug", psC.Create)
-
-					pdC := PostDetailController{API: api}
-					r.With(PostDetailPolicy{API: api}.Create).Post("/detail", pdC.Create)
-
-					pcaC := PostCategoryAssignmentController{API: api}
-					r.With(PostCategoryAssignmentPolicy{API: api}.Create).Post("/category_assignment",
-						pcaC.Create)
-				})
-				router.Routes["PostController"] = make(map[string][]string)
-				router.Routes["PostController"]["superadmin"] = []string{
-					"Create",
-					"Delete",
-				}
-				router.Routes["PostController"]["moderator"] = []string{
-					"Create",
-					"Delete",
-				}
-				router.Routes["PostController"]["user"] = []string{
-					"Create",
-					"Delete",
-				}
-				router.Routes["PostSlugController"] = make(map[string][]string)
-				router.Routes["PostSlugController"]["superadmin"] = []string{
-					"Create",
-				}
-				router.Routes["PostDetailController"] = make(map[string][]string)
-				router.Routes["PostDetailController"]["superadmin"] = []string{
-					"Create",
-				}
-				router.Routes["PostDetailController"]["moderator"] = []string{
-					"Create",
-				}
-				router.Routes["PostDetailController"]["user"] = []string{
-					"Create",
-				}
-				router.Routes["PostCategoryAssignmentController"] = make(map[string][]string)
-				router.Routes["PostCategoryAssignmentController"]["superadmin"] = []string{
-					"Create",
-				}
-				router.Routes["PostCategoryAssignmentController"]["moderator"] = []string{
-					"Create",
-				}
-				router.Routes["PostCategoryAssignmentController"]["user"] = []string{
-					"Create",
 				}
 			})
 
@@ -378,6 +391,19 @@ func (r Router) cors(next phi.HandlerFunc) phi.HandlerFunc {
 
 			ctx.SetStatusCode(fasthttp.StatusNoContent)
 			return
+		}
+		next(ctx)
+	}
+}
+
+func (r Router) language(next phi.HandlerFunc) phi.HandlerFunc {
+	return func(ctx *fasthttp.RequestCtx) {
+		if l := ctx.Request.Header.Peek("x-forgolang-lang"); len(l) > 0 {
+			ctx = r.API.SetLanguageContext(string(l), ctx)
+		} else if l := r.API.ParseQuery(ctx)["lang"]; l != "" {
+			ctx = r.API.SetLanguageContext(l, ctx)
+		} else {
+			ctx = r.API.SetLanguageContext(r.API.App.Config.Lang, ctx)
 		}
 		next(ctx)
 	}

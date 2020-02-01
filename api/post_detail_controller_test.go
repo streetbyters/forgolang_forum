@@ -21,7 +21,7 @@ func (s PostDetailControllerTest) SetupSuite() {
 
 func (s PostDetailControllerTest) Test_CreatePostDetailWithValidParams() {
 	post := model.NewPost(s.Auth.User.ID)
-	err := s.API.App.Database.Insert(new(model.Post), post, "id")
+	err := s.API.GetDB().Insert(new(model.Post), post, "id")
 	s.Nil(err)
 
 	postDetail := new(model.PostDetail)
@@ -58,7 +58,7 @@ func (s PostDetailControllerTest) Test_CreatePostDetailWithValidParams() {
 
 func (s PostDetailControllerTest) Test_Should_422Err_CreatePostDetailWithInvalidParams() {
 	post := model.NewPost(s.Auth.User.ID)
-	err := s.API.App.Database.Insert(new(model.Post), post, "id")
+	err := s.API.GetDB().Insert(new(model.Post), post, "id")
 	s.Nil(err)
 
 	postDetail := new(model.PostDetail)
@@ -74,16 +74,16 @@ func (s PostDetailControllerTest) Test_Should_422Err_CreatePostDetailWithInvalid
 
 func (s PostDetailControllerTest) Test_Should_422Err_CreatePostWithValidParamsIfSlugNotUnique() {
 	post := model.NewPost(s.Auth.User.ID)
-	err := s.API.App.Database.Insert(new(model.Post), post, "id")
+	err := s.API.GetDB().Insert(new(model.Post), post, "id")
 	s.Nil(err)
 
 	postSlug := model.NewPostSlug(post.ID, s.Auth.User.ID)
 	postSlug.Slug = slug.Make("post-title-slug")
-	err = s.API.App.Database.Insert(new(model.PostSlug), postSlug, "id")
+	err = s.API.GetDB().Insert(new(model.PostSlug), postSlug, "id")
 	s.Nil(err)
 
 	post = model.NewPost(s.Auth.User.ID)
-	err = s.API.App.Database.Insert(new(model.Post), post, "id")
+	err = s.API.GetDB().Insert(new(model.Post), post, "id")
 	s.Nil(err)
 
 	postDetail := new(model.PostDetail)

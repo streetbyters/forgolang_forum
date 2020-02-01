@@ -1,4 +1,4 @@
-// Copyright 2019 Abdulkadir Dilsiz - Çağatay Yücelen
+// Copyright 2019 Forgolang Community
 // Licensed to the Apache Software Foundation (ASF) under one or more
 // contributor license agreements.  See the NOTICE file distributed with
 // this work for additional information regarding copyright ownership.
@@ -33,8 +33,7 @@ type PostCategoryAssignment struct {
 }
 
 // NewPostCategoryAssignment generate post category assignment structure
-func NewPostCategoryAssignment(postID,
-	categoryID, sourceUserID int64) *PostCategoryAssignment {
+func NewPostCategoryAssignment(postID, categoryID, sourceUserID int64) *PostCategoryAssignment {
 	return &PostCategoryAssignment{PostID: postID,
 		CategoryID:   categoryID,
 		SourceUserID: zero.IntFrom(sourceUserID)}

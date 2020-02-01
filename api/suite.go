@@ -1,5 +1,5 @@
 //-build !test
-// Copyright 2019 Abdulkadir Dilsiz - Çağatay Yücelen
+// Copyright 2019 Forgolang Community
 // Licensed to the Apache Software Foundation (ASF) under one or more
 // contributor license agreements.  See the NOTICE file distributed with
 // this work for additional information regarding copyright ownership.
@@ -132,6 +132,7 @@ func NewSuite() *Suite {
 		EnvFile:            configFile,
 		Path:               appPath,
 		Prefix:             viper.GetString("PREFIX"),
+		Lang:               viper.GetString("LANG"),
 		UIHost:             viper.GetString("UI_HOST"),
 		Host:               viper.GetString("HOST"),
 		Port:               viper.GetInt("PORT"),
@@ -160,6 +161,21 @@ func NewSuite() *Suite {
 
 	if newAPI != nil {
 		newAPI.App.Cache.FlushDB()
+		taskArgs := make(map[string]interface{})
+		taskArgs["Router"] = newAPI.Router.Routes
+		taskArgs["Reset"] = true
+
+		tasks.GenerateBase(newAPI.App, taskArgs)
+
+		var language model2.Language
+		var languages []model2.Language
+		result := newAPI.GetDB().QueryWithModel(fmt.Sprintf(`
+			SELECT * FROM %s AS l ORDER BY l.id ASC
+		`, language.TableName()),
+			&languages)
+		cmn.FailOnError(defaultLogger, result.Error)
+		newAPI.Languages = languages
+
 		return &Suite{API: newAPI}
 	}
 
@@ -174,18 +190,22 @@ func NewSuite() *Suite {
 	cmn.FailOnError(logger, err)
 
 	newAPI = NewAPI(newApp)
+	taskArgs := make(map[string]interface{})
+	taskArgs["Router"] = newAPI.Router.Routes
+	taskArgs["Reset"] = true
 
 	newApp.Cache.FlushDB()
-	err = tasks.GenerateRolePermissions(newApp, newAPI.Router.Routes)
-	if err != nil {
-		panic(err)
-	}
-	err = tasks.GenerateBase(newApp, map[string]interface{}{
-		"Reset": true,
-	})
-	if err != nil {
-		panic(err)
-	}
+	tasks.GenerateRolePermissions(newApp, taskArgs)
+	tasks.GenerateBase(newAPI.App, taskArgs)
+
+	var language model2.Language
+	var languages []model2.Language
+	result := newAPI.GetDB().QueryWithModel(fmt.Sprintf(`
+		SELECT * FROM %s AS l ORDER BY l.id ASC
+	`, language.TableName()),
+		&languages)
+	cmn.FailOnError(defaultLogger, result.Error)
+	newAPI.Languages = languages
 
 	return &Suite{API: newAPI}
 }
@@ -217,7 +237,7 @@ func SetupSuite(s *Suite) {}
 
 // TearDownSuite after suite processes
 func TearDownSuite(s *Suite) {
-	_, err := s.API.App.Database.DB.Exec("SELECT truncate_tables($1)", s.API.App.Config.DBUser)
+	_, err := s.API.GetDB().DB.Exec("SELECT truncate_tables($1)", s.API.App.Config.DBUser)
 	cmn.FailOnError(s.API.App.Logger, err)
 	ch := make(chan bool)
 	time.AfterFunc(time.Second*2, func() {
@@ -238,7 +258,7 @@ func UserAuth(s *Suite, typ ...string) {
 	user.IsActive = true
 	userModel := new(model2.User)
 
-	err := s.API.App.Database.Insert(userModel, user,
+	err := s.API.GetDB().Insert(userModel, user,
 		"id", "inserted_at")
 	if err != nil {
 		panic(err)
@@ -262,7 +282,7 @@ func UserAuth(s *Suite, typ ...string) {
 		roleAssignment.RoleID = 1
 	}
 
-	err = s.API.App.Database.Insert(new(model2.UserRoleAssignment), roleAssignment, "id")
+	err = s.API.GetDB().Insert(new(model2.UserRoleAssignment), roleAssignment, "id")
 
 	token, _ := s.API.JWTAuth.Generate(user.ID, roleAssignment.RoleID, _s)
 	s.Auth.Token = token

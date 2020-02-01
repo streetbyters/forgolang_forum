@@ -1,4 +1,4 @@
-// Copyright 2019 Abdulkadir Dilsiz - Çağatay Yücelen
+// Copyright 2019 Forgolang Community
 // Licensed to the Apache Software Foundation (ASF) under one or more
 // contributor license agreements.  See the NOTICE file distributed with
 // this work for additional information regarding copyright ownership.
@@ -37,7 +37,7 @@ func (c LogoutController) Create(ctx *fasthttp.RequestCtx) {
 
 	var passphrase model.UserPassphrase
 	var passphraseInvalidation model.UserPassphraseInvalidation
-	c.App.Database.QueryRowWithModel(fmt.Sprintf(`
+	c.GetDB().QueryRowWithModel(fmt.Sprintf(`
 		SELECT p.* FROM %s AS p
 		LEFT OUTER JOIN %s AS pi ON p.id = pi.passphrase_id
 		WHERE pi.passphrase_id IS NULL AND p.id = $1 AND p.user_id = $2
@@ -50,7 +50,7 @@ func (c LogoutController) Create(ctx *fasthttp.RequestCtx) {
 	passphraseInvalidation.PassphraseID = passphrase.ID
 	passphraseInvalidation.SourceUserID.SetValid(c.GetAuthContext(ctx).ID)
 
-	c.App.Database.Insert(new(model.UserPassphraseInvalidation), &passphraseInvalidation,
+	c.GetDB().Insert(new(model.UserPassphraseInvalidation), &passphraseInvalidation,
 		"id")
 
 	c.JSONResponse(ctx, model2.ResponseSuccessOne{

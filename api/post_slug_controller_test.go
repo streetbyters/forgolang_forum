@@ -19,7 +19,7 @@ func (s PostSlugControllerTest) SetupSuite() {
 func (s PostSlugControllerTest) Test_CretePostSlugWithValidParams() {
 	post := new(model.Post)
 	post.AuthorID = s.Auth.User.ID
-	err := s.API.App.Database.Insert(new(model.Post), post, "id")
+	err := s.API.GetDB().Insert(new(model.Post), post, "id")
 	s.Nil(err)
 
 	postSlug := new(model.PostSlug)
@@ -42,7 +42,7 @@ func (s PostSlugControllerTest) Test_CretePostSlugWithValidParams() {
 func (s PostSlugControllerTest) Test_Should_422Err_CreatePostSlugWithInvalidParams() {
 	post := new(model.Post)
 	post.AuthorID = s.Auth.User.ID
-	err := s.API.App.Database.Insert(new(model.Post), post, "id")
+	err := s.API.GetDB().Insert(new(model.Post), post, "id")
 	s.Nil(err)
 
 	postSlug := new(model.PostSlug)

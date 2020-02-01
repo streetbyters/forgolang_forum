@@ -35,7 +35,7 @@ func (s SearchUserControllerTest) Test_SearchUserWithGivenQuery() {
 			user.Email = fmt.Sprintf("other-%d@mail.com", i)
 			user.Username = fmt.Sprintf("other-%d", i)
 		}
-		err := s.API.App.Database.Insert(new(model.User), user, "id")
+		err := s.API.GetDB().Insert(new(model.User), user, "id")
 		s.Nil(err)
 		s.API.App.ElasticClient.Index().Index("users").
 			Id(strconv.Itoa(i)).
@@ -78,7 +78,7 @@ func (s SearchUserControllerTest) Test_SearchUserWithGivenMultiFieldAndEmailPara
 			user.Email = fmt.Sprintf("other-new-%d@mail.com", i)
 			user.Username = fmt.Sprintf("other-new-%d", i)
 		}
-		err := s.API.App.Database.Insert(new(model.User), user, "id")
+		err := s.API.GetDB().Insert(new(model.User), user, "id")
 		s.Nil(err)
 		s.API.App.ElasticClient.Index().Index("users").
 			Id(strconv.Itoa(i)).
@@ -121,7 +121,7 @@ func (s SearchUserControllerTest) Test_SearchUserWithGivenMultiFieldAndUsernameP
 			user.Email = fmt.Sprintf("other-other-%d@mail.com", i)
 			user.Username = fmt.Sprintf("other-other-%d", i)
 		}
-		err := s.API.App.Database.Insert(new(model.User), user, "id")
+		err := s.API.GetDB().Insert(new(model.User), user, "id")
 		s.Nil(err)
 		s.API.App.ElasticClient.Index().Index("users").
 			Id(strconv.Itoa(i)).
@@ -165,7 +165,7 @@ func (s SearchUserControllerTest) Test_SearchUserWithGivenMultiFieldAndIsActiveP
 			user.Username = fmt.Sprintf("other-isactive-%d", i)
 			user.IsActive = true
 		}
-		err := s.API.App.Database.Insert(new(model.User), user, "id")
+		err := s.API.GetDB().Insert(new(model.User), user, "id")
 		s.Nil(err)
 		s.API.App.ElasticClient.Index().Index("users").
 			Id(strconv.Itoa(i)).

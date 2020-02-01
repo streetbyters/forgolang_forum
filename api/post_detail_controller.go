@@ -1,4 +1,4 @@
-// Copyright 2019 Abdulkadir Dilsiz - Çağatay Yücelen
+// Copyright 2019 Forgolang Community
 // Licensed to the Apache Software Foundation (ASF) under one or more
 // contributor license agreements.  See the NOTICE file distributed with
 // this work for additional information regarding copyright ownership.
@@ -60,8 +60,8 @@ func (c PostDetailController) Create(ctx *fasthttp.RequestCtx) {
 
 	postSlug := model2.NewPostSlug(postID, c.GetAuthContext(ctx).ID)
 	errs := make(map[string]string)
-	c.App.Database.Transaction(func(tx *database.Tx) error {
-		result := c.App.Database.QueryRow(fmt.Sprintf(`
+	c.GetDB().Transaction(func(tx *database.Tx) error {
+		result := c.GetDB().QueryRow(fmt.Sprintf(`
 			SELECT * FROM %s AS ps
 			LEFT OUTER JOIN %s AS ps2 ON ps.post_id = ps2.post_id AND ps.id < ps2.id
 			WHERE ps2.id IS NULL AND ps.post_id != $1 AND ps.slug = $2
@@ -75,13 +75,13 @@ func (c PostDetailController) Create(ctx *fasthttp.RequestCtx) {
 			return err
 		}
 
-		err = c.App.Database.Insert(new(model2.PostDetail), postDetail, "id", "inserted_at")
+		err = c.GetDB().Insert(new(model2.PostDetail), postDetail, "id", "inserted_at")
 		if errs, err = database.ValidateConstraint(err, postDetail); err != nil {
 			return err
 		}
 
 		postSlug.Slug = slug.Make(postDetail.Title)
-		return c.App.Database.Insert(new(model2.PostSlug), postSlug, "id")
+		return c.GetDB().Insert(new(model2.PostSlug), postSlug, "id")
 	})
 
 	if err != nil {

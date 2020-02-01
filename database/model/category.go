@@ -1,4 +1,4 @@
-// Copyright 2019 Abdulkadir Dilsiz - Çağatay Yücelen
+// Copyright 2019 Forgolang Community
 // Licensed to the Apache Software Foundation (ASF) under one or more
 // contributor license agreements.  See the NOTICE file distributed with
 // this work for additional information regarding copyright ownership.
@@ -25,12 +25,13 @@ import (
 // Category base post artifacts
 type Category struct {
 	database.DBInterface `json:"-"`
-	ID                   int64       `db:"id" json:"id"`
-	Title                string      `db:"title" json:"title" validate:"required,gte=3,lte=128"`
-	Description          zero.String `db:"description" json:"description" validate:"lte=240"`
-	Slug                 string      `db:"slug" json:"slug" unique:"categories_slug_unique"`
-	InsertedAt           time.Time   `db:"inserted_at" json:"inserted_at"`
-	UpdatedAt            time.Time   `db:"updated_at" json:"updated_at"`
+	ID                   int64              `db:"id" json:"id"`
+	Title                string             `db:"title" json:"title" validate:"required,gte=3,lte=128"`
+	Description          zero.String        `db:"description" json:"description" validate:"lte=240"`
+	Slug                 string             `db:"slug" json:"slug" unique:"categories_slug_unique"`
+	InsertedAt           time.Time          `db:"inserted_at" json:"inserted_at"`
+	UpdatedAt            time.Time          `db:"updated_at" json:"updated_at"`
+	Languages            []CategoryLanguage `json:"languages"`
 }
 
 // NewCategory generate category struct

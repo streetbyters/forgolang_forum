@@ -1,4 +1,4 @@
-// Copyright 2019 Abdulkadir Dilsiz - Çağatay Yücelen
+// Copyright 2019 Forgolang Community
 // Licensed to the Apache Software Foundation (ASF) under one or more
 // contributor license agreements.  See the NOTICE file distributed with
 // this work for additional information regarding copyright ownership.
@@ -18,7 +18,6 @@ package api
 
 import (
 	"context"
-	"fmt"
 	"forgolang_forum/database"
 	model2 "forgolang_forum/database/model"
 	"forgolang_forum/model"
@@ -54,7 +53,7 @@ func (c PostCategoryAssignmentController) Create(ctx *fasthttp.RequestCtx) {
 		return
 	}
 
-	err = c.App.Database.Insert(new(model2.PostCategoryAssignment),
+	err = c.GetDB().Insert(new(model2.PostCategoryAssignment),
 		postCategoryAssignment,
 		"id", "inserted_At")
 	if errs, err := database.ValidateConstraint(err, postCategoryAssignment); err != nil {
@@ -77,10 +76,9 @@ func (c PostCategoryAssignmentController) Create(ctx *fasthttp.RequestCtx) {
 			}
 			`).
 			Params(map[string]interface{}{
-				"cat": postCategoryAssignment,
+				"cat": postCategoryAssignment.CategoryID,
 			})).
 		Do(context.TODO())
-	fmt.Println(err)
 
 	c.JSONResponse(ctx, model.ResponseSuccessOne{
 		Data: postCategoryAssignment,

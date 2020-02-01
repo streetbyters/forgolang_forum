@@ -1,4 +1,4 @@
-// Copyright 2019 Abdulkadir Dilsiz - Çağatay Yücelen
+// Copyright 2019 Forgolang Community
 // Licensed to the Apache Software Foundation (ASF) under one or more
 // contributor license agreements.  See the NOTICE file distributed with
 // this work for additional information regarding copyright ownership.
@@ -22,6 +22,7 @@ type Config struct {
 	Path               string `json:"path"`
 	Mode               MODE   `json:"mode"`
 	Prefix             string `json:"prefix"`
+	Lang               string `json:"lang"`
 	UIHost             string `json:"ui_host"`
 	Host               string `json:"host"`
 	Port               int    `json:"port"`

@@ -1,4 +1,4 @@
-// Copyright 2019 Abdulkadir Dilsiz - Çağatay Yücelen
+// Copyright 2019 Forgolang Community
 // Licensed to the Apache Software Foundation (ASF) under one or more
 // contributor license agreements.  See the NOTICE file distributed with
 // this work for additional information regarding copyright ownership.
@@ -44,7 +44,7 @@ func (c TokenController) Create(ctx *fasthttp.RequestCtx) {
 	}
 
 	passphrase := new(model2.UserPassphrase)
-	result := c.App.Database.QueryRowWithModel(passphrase.PassphraseQuery(c.App.Database),
+	result := c.GetDB().QueryRowWithModel(passphrase.PassphraseQuery(c.GetDB()),
 		passphrase,
 		tokenRequest.Passphrase)
 	if result.Error != nil {
@@ -55,7 +55,7 @@ func (c TokenController) Create(ctx *fasthttp.RequestCtx) {
 	}
 
 	user := new(model2.User)
-	result = c.App.Database.QueryRowWithModel("SELECT u.* FROM "+user.TableName()+" AS u "+
+	result = c.GetDB().QueryRowWithModel("SELECT u.* FROM "+user.TableName()+" AS u "+
 		"WHERE u.id = $1 AND u.is_active = true",
 		user,
 		passphrase.UserID)
@@ -68,7 +68,7 @@ func (c TokenController) Create(ctx *fasthttp.RequestCtx) {
 
 	role := new(model2.Role)
 	roleAssignment := new(model2.UserRoleAssignment)
-	err := c.App.Database.DB.QueryRowx(
+	err := c.GetDB().DB.QueryRowx(
 		fmt.Sprintf("SELECT r.code, ra.role_id FROM %s AS ra "+
 			"LEFT OUTER JOIN %s AS ra2 ON ra.user_id = ra2.user_id and ra.id < ra2.id "+
 			"INNER JOIN %s AS r ON ra.role_id = r.id "+

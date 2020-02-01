@@ -1,4 +1,4 @@
-// Copyright 2019 Abdulkadir Dilsiz - Çağatay Yücelen
+// Copyright 2019 Forgolang Community
 // Licensed to the Apache Software Foundation (ASF) under one or more
 // contributor license agreements.  See the NOTICE file distributed with
 // this work for additional information regarding copyright ownership.
@@ -105,6 +105,7 @@ func NewApp(config *model.Config, logger *utils.Logger) *App {
 		"all": "categories",
 		"one": "category",
 		"slug": "category:slug",
+		"languages": "category:languages",
 	}
 	RedisKeys["tag"] = map[string]string{
 		"all": "tags",

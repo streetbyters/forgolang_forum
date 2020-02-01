@@ -31,12 +31,12 @@ func (s ConfirmationControllerTest) Test_PostConfirmationWithGivenIdentifiers() 
 	user.Email = "akdilsiz@tecpor.com"
 	user.Username = "akdilsiz-confirmation"
 	user.IsActive = true
-	err := s.API.App.Database.Insert(new(model.User), user, "id")
+	err := s.API.GetDB().Insert(new(model.User), user, "id")
 	s.Nil(err)
 
 	otc := model.NewUserOneTimeCode(user.ID)
 	otc.Type = database.Confirmation
-	err = s.API.App.Database.Insert(new(model.UserOneTimeCode), otc, "id", "inserted_at")
+	err = s.API.GetDB().Insert(new(model.UserOneTimeCode), otc, "id", "inserted_at")
 	s.Nil(err)
 
 	resp := s.JSON(Post,
@@ -54,13 +54,13 @@ func (s ConfirmationControllerTest) Test_Should_404Err_PostConfirmationWithGiven
 	user.Email = "email@mail.com"
 	user.Username = "akdilsiz-confirmation-2"
 	user.IsActive = true
-	err := s.API.App.Database.Insert(new(model.User), user, "id")
+	err := s.API.GetDB().Insert(new(model.User), user, "id")
 	s.Nil(err)
 
 	otc := model.NewUserOneTimeCode(user.ID)
 	otc.Type = database.Confirmation
 	otc.InsertedAt = time.Now().UTC().Add(-time.Minute * 20)
-	err = s.API.App.Database.Insert(new(model.UserOneTimeCode), otc, "id", "inserted_at")
+	err = s.API.GetDB().Insert(new(model.UserOneTimeCode), otc, "id", "inserted_at")
 	s.Nil(err)
 
 	resp := s.JSON(Post,
@@ -79,17 +79,17 @@ func (s ConfirmationControllerTest) Test_Should_404Err_PostConfirmationWithGiven
 	user.Email = "email-2@mail.com"
 	user.Username = "akdilsiz-confirmation-3"
 	user.IsActive = true
-	err := s.API.App.Database.Insert(new(model.User), user, "id")
+	err := s.API.GetDB().Insert(new(model.User), user, "id")
 	s.Nil(err)
 
 	otc := model.NewUserOneTimeCode(user.ID)
 	otc.Type = database.Confirmation
-	err = s.API.App.Database.Insert(new(model.UserOneTimeCode), otc, "id", "inserted_at")
+	err = s.API.GetDB().Insert(new(model.UserOneTimeCode), otc, "id", "inserted_at")
 	s.Nil(err)
 
 	userState := model.NewUserState(user.ID)
 	userState.State = database.Active
-	err = s.API.App.Database.Insert(new(model.UserState), userState, "id")
+	err = s.API.GetDB().Insert(new(model.UserState), userState, "id")
 	s.Nil(err)
 
 	resp := s.JSON(Post,

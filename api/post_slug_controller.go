@@ -1,4 +1,4 @@
-// Copyright 2019 Abdulkadir Dilsiz - Çağatay Yücelen
+// Copyright 2019 Forgolang Community
 // Licensed to the Apache Software Foundation (ASF) under one or more
 // contributor license agreements.  See the NOTICE file distributed with
 // this work for additional information regarding copyright ownership.
@@ -54,7 +54,7 @@ func (c PostSlugController) Create(ctx *fasthttp.RequestCtx) {
 		return
 	}
 
-	err = c.App.Database.Insert(new(model2.PostSlug), postSlug, "id", "inserted_at")
+	err = c.GetDB().Insert(new(model2.PostSlug), postSlug, "id", "inserted_at")
 	if errs, err := database.ValidateConstraint(err, postSlug); err != nil {
 		c.JSONResponse(ctx, model.ResponseError{
 			Errors: errs,

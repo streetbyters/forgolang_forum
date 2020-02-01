@@ -24,17 +24,17 @@ func (s TokenControllerTest) Test_PostTokenWithValidParams() {
 	userModel.IsActive = true
 	user := new(model2.User)
 
-	err := s.API.App.Database.Insert(user, userModel, "id", "inserted_at")
+	err := s.API.GetDB().Insert(user, userModel, "id", "inserted_at")
 	s.Nil(err)
 
 	roleAssignment := model2.NewUserRoleAssignment(userModel.ID, 1)
-	err = s.API.App.Database.Insert(new(model2.UserRoleAssignment), roleAssignment, "id")
+	err = s.API.GetDB().Insert(new(model2.UserRoleAssignment), roleAssignment, "id")
 	s.Nil(err)
 
 	userPassphrase := new(model2.UserPassphrase)
 	userPassphraseModel := model2.NewUserPassphrase(userModel.ID)
 	userPassphraseModel.InsertedAt = time.Now().UTC()
-	err = s.API.App.Database.Insert(userPassphrase, userPassphraseModel, "passphrase")
+	err = s.API.GetDB().Insert(userPassphrase, userPassphraseModel, "passphrase")
 	s.Nil(err)
 
 	tokenRequest := model.TokenRequest{Passphrase: userPassphrase.Passphrase}
@@ -59,11 +59,11 @@ func (s TokenControllerTest) Test_Shoul_404Error_PostTokenWithValidParamsIfNotEx
 	userModel.IsActive = true
 	user := new(model2.User)
 
-	err := s.API.App.Database.Insert(user, userModel, "id")
+	err := s.API.GetDB().Insert(user, userModel, "id")
 	s.Nil(err)
 
 	roleAssignment := model2.NewUserRoleAssignment(userModel.ID, 1)
-	err = s.API.App.Database.Insert(new(model2.UserRoleAssignment), roleAssignment, "id")
+	err = s.API.GetDB().Insert(new(model2.UserRoleAssignment), roleAssignment, "id")
 	s.Nil(err)
 
 	tokenRequest := model.TokenRequest{Passphrase: "userPassphrase.Passphrase"}
@@ -84,16 +84,16 @@ func (s TokenControllerTest) Test_Should_404Error_PostTokenWithValidParamsIfUser
 	userModel.IsActive = false
 	user := new(model2.User)
 
-	err := s.API.App.Database.Insert(user, userModel, "id")
+	err := s.API.GetDB().Insert(user, userModel, "id")
 	s.Nil(err)
 
 	roleAssignment := model2.NewUserRoleAssignment(userModel.ID, 1)
-	err = s.API.App.Database.Insert(new(model2.UserRoleAssignment), roleAssignment, "id")
+	err = s.API.GetDB().Insert(new(model2.UserRoleAssignment), roleAssignment, "id")
 	s.Nil(err)
 
 	userPassphrase := new(model2.UserPassphrase)
 	userPassphraseModel := model2.NewUserPassphrase(userModel.ID)
-	err = s.API.App.Database.Insert(userPassphrase, userPassphraseModel, "passphrase")
+	err = s.API.GetDB().Insert(userPassphrase, userPassphraseModel, "passphrase")
 	s.Nil(err)
 
 	tokenRequest := model.TokenRequest{Passphrase: userPassphrase.Passphrase}
@@ -114,17 +114,17 @@ func (s TokenControllerTest) Test_Should_404Error_PostTokenWithValidParamsIfPass
 	userModel.IsActive = true
 	user := new(model2.User)
 
-	err := s.API.App.Database.Insert(user, userModel, "id")
+	err := s.API.GetDB().Insert(user, userModel, "id")
 	s.Nil(err)
 
 	roleAssignment := model2.NewUserRoleAssignment(userModel.ID, 1)
-	err = s.API.App.Database.Insert(new(model2.UserRoleAssignment), roleAssignment, "id")
+	err = s.API.GetDB().Insert(new(model2.UserRoleAssignment), roleAssignment, "id")
 	s.Nil(err)
 
 	userPassphrase := new(model2.UserPassphrase)
 	userPassphraseModel := model2.NewUserPassphrase(userModel.ID)
 	userPassphraseModel.InsertedAt = time.Now().UTC().AddDate(0, -4, 0)
-	err = s.API.App.Database.Insert(userPassphrase, userPassphraseModel, "passphrase")
+	err = s.API.GetDB().Insert(userPassphrase, userPassphraseModel, "passphrase")
 	s.Nil(err)
 
 	tokenRequest := model.TokenRequest{Passphrase: userPassphraseModel.Passphrase}
@@ -144,13 +144,13 @@ func (s TokenControllerTest) Test_Should_404Err_PostTokenWithValidParamsIfUserRo
 	userModel.IsActive = true
 	user := new(model2.User)
 
-	err := s.API.App.Database.Insert(user, userModel, "id", "inserted_at")
+	err := s.API.GetDB().Insert(user, userModel, "id", "inserted_at")
 	s.Nil(err)
 
 	userPassphrase := new(model2.UserPassphrase)
 	userPassphraseModel := model2.NewUserPassphrase(userModel.ID)
 	userPassphraseModel.InsertedAt = time.Now().UTC()
-	err = s.API.App.Database.Insert(userPassphrase, userPassphraseModel, "passphrase")
+	err = s.API.GetDB().Insert(userPassphrase, userPassphraseModel, "passphrase")
 	s.Nil(err)
 
 	tokenRequest := model.TokenRequest{Passphrase: userPassphrase.Passphrase}
