@@ -13,17 +13,15 @@ jobs:
           POSTGRES_USER: forgolang
           POSTGRES_DB: forgolang_test
       - image: rabbitmq:3.5.4
+        environment:
+          RABBITMQ_DEFAULT_USER: local
+          RABBITMQ_DEFAULT_PASS: local
       - image: circleci/redis:alpine
       - image: docker.elastic.co/elasticsearch/elasticsearch:7.5.2
 
     working_directory: /go/src/github.com/{{ORG_NAME}}/{{REPO_NAME}}
     steps:
       - checkout
-      - run:
-          command: |
-            sudo rabbitmqctl add_user local local
-            sudo rabbitmqctl set_user_tags local administrator
-            sudo rabbitmqctl set_permissions -p / local ".*" ".*" ".*"
       - run: sleep 10
       - run: go get -v -t -d ./...
       - run: go mod vendor
