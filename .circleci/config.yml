@@ -18,6 +18,15 @@ jobs:
           RABBITMQ_DEFAULT_PASS: local
       - image: circleci/redis:alpine
       - image: docker.elastic.co/elasticsearch/elasticsearch:7.5.2
+        environment:
+          - cluster.name: forgolang-cluster
+          - xpack.security.enabled: false
+          - transport.host: localhost
+          - network.host: 127.0.0.1
+          - http.port: 9200
+          - discovery.type: single-node
+          - bootstrap.memory_lock=true
+          - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
 
     working_directory: /go/src/github.com/{{ORG_NAME}}/{{REPO_NAME}}
     steps:
