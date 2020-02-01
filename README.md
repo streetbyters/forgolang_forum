@@ -6,8 +6,8 @@
  <h1 align="center">forgolang</h1>
 
  <p align="center">
-   <a href="https://travis-ci.org/forgolang/forgolang_forum">
-    <img src="https://travis-ci.org/forgolang/forgolang_forum.svg?branch=master"/>
+   <a href="https://circleci.com/gh/forgolang/forgolang_forum">
+    <img src="https://circleci.com/gh/forgolang/forgolang_forum.svg?style=svg"/>
    </a>
    <a href="https://github.com/forgolang/forgolang_forum/blob/master/LICENSE">
     <img src="https://img.shields.io/github/license/forgolang/forgolang_forum"/>

@@ -39,3 +39,4 @@ jobs:
       - run: go run ./cmd -mode test -migrate -reset
       - run: go run ./cmd -mode test -task -name GenerateBase
       - run: go test -v -coverprofile=coverage.txt -covermode=atomic ./...
+      - run: bash <(curl -s https://codecov.io/bash)
