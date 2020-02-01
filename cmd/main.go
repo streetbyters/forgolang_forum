@@ -105,6 +105,7 @@ func main() {
 		EnvFile:            configFile,
 		Path:               appPath,
 		Prefix:             viper.GetString("PREFIX"),
+		Lang:               viper.GetString("LANG"),
 		UIHost:             viper.GetString("UI_HOST"),
 		Host:               viper.GetString("HOST"),
 		Port:               viper.GetInt("PORT"),

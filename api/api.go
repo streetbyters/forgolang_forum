@@ -36,11 +36,11 @@ import (
 
 // API rest api structure
 type API struct {
-	App           *cmn.App
-	Router        *Router
-	JWTAuth       *JWTAuth
-	Authorization *Authorization
-	Languages     []model2.Language
+	App             *cmn.App
+	Router          *Router
+	JWTAuth         *JWTAuth
+	Authorization   *Authorization
+	Languages       []model2.Language
 }
 
 // NewAPI building api
@@ -130,6 +130,21 @@ func (a *API) GetAuthContext(ctx *fasthttp.RequestCtx) *model.AuthContext {
 	return ctx.UserValue("AuthContext").(*model.AuthContext)
 }
 
+// GetLanguageContext get default language context
+func (a *API) GetLanguageContext(ctx *fasthttp.RequestCtx) *model2.Language {
+	return ctx.UserValue("Language").(*model2.Language)
+}
+
+func (a *API) SetLanguageContext(code string, ctx *fasthttp.RequestCtx) *fasthttp.RequestCtx {
+	if l := a.GetLanguage(code); l != nil {
+		ctx.SetUserValue("Language", l)
+		return ctx
+	}
+
+	ctx.SetUserValue("Language", a.GetLanguage(a.App.Config.Lang))
+	return ctx
+}
+
 // GetDB api database getter
 func (a *API) GetDB() *database.Database {
 	return a.App.Database
@@ -137,14 +152,21 @@ func (a *API) GetDB() *database.Database {
 
 // GetLanguage api language getter with given code
 func (a *API) GetLanguage(code string) *model2.Language {
+	exists := false
 	language := model2.NewLanguage()
 	for _, l := range a.Languages {
 		if l.Code == code {
 			language = &l
+			exists = !exists
 			break
 		}
 	}
-	return language
+
+	if exists {
+		return language
+	}
+
+	return nil
 }
 
 // GetElastic api elastic search getter

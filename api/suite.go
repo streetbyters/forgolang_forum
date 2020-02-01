@@ -132,6 +132,7 @@ func NewSuite() *Suite {
 		EnvFile:            configFile,
 		Path:               appPath,
 		Prefix:             viper.GetString("PREFIX"),
+		Lang:               viper.GetString("LANG"),
 		UIHost:             viper.GetString("UI_HOST"),
 		Host:               viper.GetString("HOST"),
 		Port:               viper.GetInt("PORT"),
@@ -164,10 +165,7 @@ func NewSuite() *Suite {
 		taskArgs["Router"] = newAPI.Router.Routes
 		taskArgs["Reset"] = true
 
-		err = tasks.GenerateBase(newAPI.App, taskArgs)
-		if err != nil {
-			panic(err)
-		}
+		tasks.GenerateBase(newAPI.App, taskArgs)
 
 		var language model2.Language
 		var languages []model2.Language
@@ -197,10 +195,8 @@ func NewSuite() *Suite {
 	taskArgs["Reset"] = true
 
 	newApp.Cache.FlushDB()
-	err = tasks.GenerateRolePermissions(newApp, taskArgs)
-	if err != nil {
-		panic(err)
-	}
+	tasks.GenerateRolePermissions(newApp, taskArgs)
+	tasks.GenerateBase(newAPI.App, taskArgs)
 
 	var language model2.Language
 	var languages []model2.Language

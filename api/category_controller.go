@@ -25,6 +25,7 @@ import (
 	model2 "forgolang_forum/model"
 	"github.com/fate-lovely/phi"
 	"github.com/gosimple/slug"
+	"github.com/jmoiron/sqlx"
 	"github.com/valyala/fasthttp"
 )
 
@@ -43,16 +44,36 @@ func (c CategoryController) Index(ctx *fasthttp.RequestCtx) {
 	var categories []model.Category
 
 	if s, err := c.App.Cache.SMembers(cmn.GetRedisKey("category", "all")).Result(); err == nil && len(s) > 0 {
+		var keys []string
 		for _, v := range s {
 			var c model.Category
 			json.Unmarshal([]byte(v), &c)
+			keys = append(keys, fmt.Sprintf("%s:%d",
+				cmn.GetRedisKey("category", "languages"),
+				c.ID))
 			categories = append(categories, c)
+		}
+
+		categoryLanguages := make(map[int64][]model.CategoryLanguage)
+		if len(keys) > 0 {
+			s, _ = c.GetCache().SUnion(keys...).Result()
+			for _, cachedLang := range s {
+				var cl model.CategoryLanguage
+				json.Unmarshal([]byte(cachedLang), &cl)
+				categoryLanguages[cl.CategoryID] = append(categoryLanguages[cl.CategoryID], cl)
+			}
+		}
+
+		var categories2 []model.Category
+		for _, c := range categories {
+			c.Languages = categoryLanguages[c.ID]
+			categories2 = append(categories2, c)
 		}
 
 		count, _ := c.App.Cache.SCard(cmn.GetRedisKey("category", "all")).Result()
 
 		c.JSONResponse(ctx, model2.ResponseSuccess{
-			Data:       categories,
+			Data:       categories2,
 			TotalCount: count,
 		}, fasthttp.StatusOK)
 		return
@@ -68,14 +89,42 @@ func (c CategoryController) Index(ctx *fasthttp.RequestCtx) {
 	c.GetDB().DB.Get(&count,
 		fmt.Sprintf("SELECT count(*) FROM %s", c.Model.TableName()))
 
+	var ids []int64
 	var cats []interface{}
 	for _, ca := range categories {
 		cats = append(cats, ca.ToJSON())
+		ids = append(ids, ca.ID)
 	}
 	c.App.Cache.SAdd(cmn.GetRedisKey("category", "all"), cats...)
-	
+
+	var categoryLanguage model.CategoryLanguage
+	var categoryLanguages []model.CategoryLanguage
+	query, args, _ := sqlx.In(fmt.Sprintf(`
+		SELECT cl.* FROM %s AS cl
+		LEFT OUTER JOIN %s AS cl2 ON 
+			cl.language_id = cl2.language_id AND
+			cl.category_id = cl2.category_id AND
+			cl.id < cl2.id
+		WHERE cl2.id IS NULL AND cl.category_id IN (?)
+	`, categoryLanguage.TableName(), categoryLanguage.TableName()), ids)
+	query = c.GetDB().DB.Rebind(query)
+	c.GetDB().QueryWithModel(query,
+		&categoryLanguages,
+		args...)
+
+	categoryLanguagesMap := make(map[int64][]model.CategoryLanguage)
+	for _, ca := range categoryLanguages {
+		categoryLanguagesMap[ca.CategoryID] = append(categoryLanguagesMap[ca.CategoryID], ca)
+	}
+
+	var categories2 []model.Category
+	for _, ca := range categories {
+		ca.Languages = categoryLanguagesMap[ca.ID]
+		categories2 = append(categories2, ca)
+	}
+
 	c.JSONResponse(ctx, model2.ResponseSuccess{
-		Data:       categories,
+		Data:       categories2,
 		TotalCount: count,
 	}, fasthttp.StatusOK)
 }
@@ -89,6 +138,18 @@ func (c CategoryController) Show(ctx *fasthttp.RequestCtx) {
 		cmn.GetRedisKey("category", "one"),
 		phi.URLParam(ctx, "categoryID"))).Scan(&cs); err == nil {
 		json.Unmarshal([]byte(cs), &category)
+
+		var categoryLanguages []model.CategoryLanguage
+		s, _ := c.GetCache().SMembers(fmt.Sprintf("%s:%d",
+			cmn.GetRedisKey("category", "languages"),
+			category.ID)).Result()
+		for _, cl := range s {
+			var l model.CategoryLanguage
+			json.Unmarshal([]byte(cl), &l)
+			categoryLanguages = append(categoryLanguages, l)
+		}
+
+		category.Languages = categoryLanguages
 
 		c.JSONResponse(ctx, model2.ResponseSuccessOne{
 			Data: category,
@@ -104,10 +165,28 @@ func (c CategoryController) Show(ctx *fasthttp.RequestCtx) {
 
 	c.App.Cache.Set(fmt.Sprintf("%s:%d",
 		cmn.GetRedisKey("category", "one"),
-		category.ID), category.ToJSON(), 0)
+		category.ID),
+		category.ToJSON(),
+		0)
 	c.App.Cache.Set(fmt.Sprintf("%s:%s",
 		cmn.GetRedisKey("category", "slug"),
-		category.Slug), category.ToJSON(), 0)
+		category.Slug),
+		category.ToJSON(),
+		0)
+
+	var categoryLanguage model.CategoryLanguage
+	var categoryLanguages []model.CategoryLanguage
+	c.GetDB().QueryWithModel(fmt.Sprintf(`
+		SELECT cl.* FROM %s AS cl
+		LEFT OUTER JOIN %s AS cl2 ON 
+			cl.language_id = cl2.language_id AND
+			cl.category_id = cl2.category_id AND
+			cl.id < cl2.id
+		WHERE cl2.id IS NULL AND cl.category_id = $1
+	`, categoryLanguage.TableName(), categoryLanguage.TableName()),
+		&categoryLanguages,
+		category.ID)
+	category.Languages = categoryLanguages
 
 	c.JSONResponse(ctx, model2.ResponseSuccessOne{
 		Data: category,

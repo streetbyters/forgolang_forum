@@ -34,8 +34,8 @@ func GenerateBase(app *cmn.App, args interface{}) error {
 	reset := GetArg("Reset", args).(bool)
 
 	if reset {
-		resp, err := app.ElasticClient.DeleteIndex("users", "posts").Do(context.Background())
-		if err != nil || !resp.Acknowledged {
+		_, err := app.ElasticClient.DeleteIndex("users", "posts").Do(context.TODO())
+		if err != nil {
 			panic(err)
 		}
 		app.Logger.LogInfo("Reset elasticsearch indexes")
@@ -43,7 +43,7 @@ func GenerateBase(app *cmn.App, args interface{}) error {
 		result := app.Database.Query(fmt.Sprintf("TRUNCATE TABLE %s RESTART IDENTITY CASCADE",
 			language.TableName()))
 		if result.Error != nil {
-			panic(err)
+			panic(result.Error)
 		}
 		app.Logger.LogInfo("Reset languages")
 	}
@@ -52,14 +52,14 @@ func GenerateBase(app *cmn.App, args interface{}) error {
 	_, err := app.ElasticClient.
 		CreateIndex("users").
 		Body(elasticBody).
-		Do(context.Background())
+		Do(context.TODO())
 	if err != nil {
 		panic(err)
 	}
 	_, err = app.ElasticClient.
 		CreateIndex("posts").
 		Body(elasticBody).
-		Do(context.Background())
+		Do(context.TODO())
 	if err != nil {
 		panic(err)
 	}

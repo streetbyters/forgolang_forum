@@ -40,6 +40,41 @@ func (s CategoryControllerTest) Test_ListAllCategories() {
 	defaultLogger.LogInfo("List all categories")
 }
 
+func (s CategoryControllerTest) Test_ListAllCategoriesAndCategoryLanguages() {
+	for i := 0; i < 50; i++ {
+		category := model.NewCategory()
+		category.Title = fmt.Sprintf("Category 2 %d", i)
+		category.Description.SetValid("Category Description")
+		category.Slug = slug.Make(category.Title)
+		err := s.API.GetDB().Insert(model.NewCategory(),
+			category,
+			"id", "inserted_at", "updated_at")
+		s.Nil(err)
+		if err != nil {
+			break
+		}
+
+		for j, l := range s.API.Languages {
+			categoryLanguage := model.NewCategoryLanguage(category.ID)
+			categoryLanguage.LanguageID = l.ID
+			categoryLanguage.Title = fmt.Sprintf("Category Language %d %d", i, j)
+			categoryLanguage.Slug = slug.Make(categoryLanguage.Title)
+			err := s.API.GetDB().Insert(new(model.CategoryLanguage), categoryLanguage, "id")
+			s.Nil(err)
+			if err != nil {
+				break
+			}
+		}
+	}
+
+	resp := s.JSON(Get, "/api/v1/category", nil)
+
+	s.Equal(resp.Status, fasthttp.StatusOK)
+	s.Greater(resp.Success.TotalCount, int64(49))
+
+	defaultLogger.LogInfo("List all categories and category languages")
+}
+
 func (s CategoryControllerTest) Test_ListAllCachedCategories() {
 	for i := 0; i < 50; i++ {
 		category := model.NewCategory()
@@ -59,6 +94,44 @@ func (s CategoryControllerTest) Test_ListAllCachedCategories() {
 	s.Greater(resp.Success.TotalCount, int64(49))
 
 	defaultLogger.LogInfo("List all categories")
+}
+
+func (s CategoryControllerTest) Test_ListAllCachedCategoriesAndCategoryLanguages() {
+	for i := 0; i < 50; i++ {
+		category := model.NewCategory()
+		category.Title = fmt.Sprintf("Category Cache 2 %d", i)
+		category.Description.SetValid("Category Description")
+		category.Slug = slug.Make(category.Title)
+		err := s.API.GetDB().Insert(model.NewCategory(),
+			category,
+			"id", "inserted_at", "updated_at")
+		s.Nil(err)
+
+		for j, l := range s.API.Languages {
+			categoryLanguage := model.NewCategoryLanguage(category.ID)
+			categoryLanguage.LanguageID = l.ID
+			categoryLanguage.Title = fmt.Sprintf("Category Language 2 %d %d", i, j)
+			categoryLanguage.Slug = slug.Make(categoryLanguage.Title)
+			err := s.API.GetDB().Insert(new(model.CategoryLanguage), categoryLanguage, "id")
+			s.Nil(err)
+			if err != nil {
+				break
+			}
+			s.API.GetCache().SAdd(fmt.Sprintf("%s:%d",
+				cmn.GetRedisKey("category", "languages"),
+				category.ID),
+				categoryLanguage.ToJSON())
+		}
+
+		s.API.App.Cache.SAdd(cmn.GetRedisKey("category", "all"), category.ToJSON())
+	}
+
+	resp := s.JSON(Get, "/api/v1/category", nil)
+
+	s.Equal(resp.Status, fasthttp.StatusOK)
+	s.Greater(resp.Success.TotalCount, int64(49))
+
+	defaultLogger.LogInfo("List all cached categories and category languages")
 }
 
 func (s CategoryControllerTest) Test_ShowCategoryWithGivenIdentifier() {
@@ -84,6 +157,45 @@ func (s CategoryControllerTest) Test_ShowCategoryWithGivenIdentifier() {
 	s.Equal(data["updated_at"], category.UpdatedAt.UTC().Format(time.RFC3339Nano))
 
 	defaultLogger.LogInfo("Show a category with given identifier")
+}
+
+func (s CategoryControllerTest) Test_ShowCategoryAndCategoryLanguagesWithGivenIdentifier() {
+	category := model.NewCategory()
+	category.Title = "Show Category Language"
+	category.Description.SetValid("Show Category Description")
+	category.Slug = slug.Make(category.Title)
+	err := s.API.GetDB().Insert(model.NewCategory(),
+		category,
+		"id", "inserted_at", "updated_at")
+	s.Nil(err)
+
+	for i, l := range s.API.Languages {
+		categoryLanguage := model.NewCategoryLanguage(category.ID)
+		categoryLanguage.LanguageID = l.ID
+		categoryLanguage.Title = fmt.Sprintf("Show Category Language %d", i)
+		categoryLanguage.Slug = slug.Make(categoryLanguage.Title)
+		err := s.API.GetDB().Insert(new(model.CategoryLanguage), categoryLanguage, "id")
+		s.Nil(err)
+		if err != nil {
+			break
+		}
+	}
+
+	resp := s.JSON(Get, fmt.Sprintf("/api/v1/category/%d", category.ID), nil)
+
+	s.Equal(resp.Status, fasthttp.StatusOK)
+
+	data, _ := resp.Success.Data.(map[string]interface{})
+	s.Equal(data["id"], float64(category.ID))
+	s.Equal(data["title"], "Show Category Language")
+	s.Equal(data["description"], "Show Category Description")
+	s.Equal(data["slug"], "show-category-language")
+	s.Equal(data["inserted_at"], category.InsertedAt.UTC().Format(time.RFC3339Nano))
+	s.Equal(data["updated_at"], category.UpdatedAt.UTC().Format(time.RFC3339Nano))
+	s.Equal(len(data["languages"].([]interface{})), 2)
+
+	defaultLogger.LogInfo("Show a category and category languages " +
+		"with given identifier")
 }
 
 func (s CategoryControllerTest) Test_ShowCachedCategoryWithGivenIdentifier() {
@@ -113,6 +225,53 @@ func (s CategoryControllerTest) Test_ShowCachedCategoryWithGivenIdentifier() {
 	s.Equal(data["updated_at"], category.UpdatedAt.Format(time.RFC3339Nano))
 
 	defaultLogger.LogInfo("Show a cached category with given identifier")
+}
+
+func (s CategoryControllerTest) Test_ShowCachedCategoryAndCategoryLanguageWithGivenIdentifier() {
+	category := model.NewCategory()
+	category.Title = "Show Category 2 1"
+	category.Description.SetValid("Show Category Description")
+	category.Slug = slug.Make("Show category 2 1")
+	err := s.API.GetDB().Insert(model.NewCategory(),
+		category,
+		"id", "inserted_at", "updated_at")
+	s.Nil(err)
+
+	s.API.App.Cache.Set(fmt.Sprintf("%s:%d",
+		cmn.GetRedisKey("category", "one"),
+		category.ID), category.ToJSON(), 0)
+
+	for j, l := range s.API.Languages {
+		categoryLanguage := model.NewCategoryLanguage(category.ID)
+		categoryLanguage.LanguageID = l.ID
+		categoryLanguage.Title = fmt.Sprintf("Show Category Language 2 1 %d", j)
+		categoryLanguage.Slug = slug.Make(categoryLanguage.Title)
+		err := s.API.GetDB().Insert(new(model.CategoryLanguage), categoryLanguage, "id")
+		s.Nil(err)
+		if err != nil {
+			break
+		}
+		s.API.GetCache().SAdd(fmt.Sprintf("%s:%d",
+			cmn.GetRedisKey("category", "languages"),
+			category.ID),
+			categoryLanguage.ToJSON())
+	}
+
+	resp := s.JSON(Get, fmt.Sprintf("/api/v1/category/%d", category.ID), nil)
+
+	s.Equal(resp.Status, fasthttp.StatusOK)
+
+	data, _ := resp.Success.Data.(map[string]interface{})
+	s.Equal(data["id"], float64(category.ID))
+	s.Equal(data["title"], "Show Category 2 1")
+	s.Equal(data["description"], "Show Category Description")
+	s.Equal(data["slug"], "show-category-2-1")
+	s.Equal(data["inserted_at"], category.InsertedAt.Format(time.RFC3339Nano))
+	s.Equal(data["updated_at"], category.UpdatedAt.Format(time.RFC3339Nano))
+	s.Equal(len(data["languages"].([]interface{})), 2)
+
+	defaultLogger.LogInfo("Show a cached category and category language " +
+		" with given identifier")
 }
 
 func (s CategoryControllerTest) Test_Should_404Err_ShowCategoryWithGivenIdentifierIfNotExists() {

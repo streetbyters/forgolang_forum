@@ -47,7 +47,7 @@ type Router struct {
 var (
 	prefix           string
 	reqID            uint64
-	allowHeaders     = "Accept, Content-Type, Content-Length, Accept-Encoding, X-CSRF-Token, Authorization"
+	allowHeaders     = "Accept, Content-Type, Content-Length, Accept-Encoding, X-CSRF-Token, Authorization, X-Forgolang-Lang"
 	allowMethods     = "HEAD,GET,POST,PUT,DELETE,OPTIONS"
 	allowOrigin      = "*"
 	allowCredentials = "true"
@@ -91,6 +91,7 @@ func NewRouter(api *API) *Router {
 	r.Use(router.logger)
 	r.Use(router.cors)
 	r.Use(rateMiddleware.Handle)
+	r.Use(router.language)
 
 	r.NotFound(router.notFound)
 	r.MethodNotAllowed(router.methodNotAllowed)
@@ -390,6 +391,19 @@ func (r Router) cors(next phi.HandlerFunc) phi.HandlerFunc {
 
 			ctx.SetStatusCode(fasthttp.StatusNoContent)
 			return
+		}
+		next(ctx)
+	}
+}
+
+func (r Router) language(next phi.HandlerFunc) phi.HandlerFunc {
+	return func(ctx *fasthttp.RequestCtx) {
+		if l := ctx.Request.Header.Peek("x-forgolang-lang"); len(l) > 0 {
+			ctx = r.API.SetLanguageContext(string(l), ctx)
+		} else if l := r.API.ParseQuery(ctx)["lang"]; l != "" {
+			ctx = r.API.SetLanguageContext(l, ctx)
+		} else {
+			ctx = r.API.SetLanguageContext(r.API.App.Config.Lang, ctx)
 		}
 		next(ctx)
 	}
