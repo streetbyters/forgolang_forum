@@ -14,7 +14,7 @@ func TestNewSES(t *testing.T) {
 	dirs := strings.SplitAfter(workingPath, "forgolang_forum")
 	workingPath = dirs[0]
 
-	c, _ := Config(workingPath, "test.env")
+	c, _ := Config(workingPath, "test")
 
 	s, err := NewSES(c)
 
@@ -27,7 +27,7 @@ func TestSES_Send(t *testing.T) {
 	dirs := strings.SplitAfter(workingPath, "forgolang_forum")
 	workingPath = dirs[0]
 
-	c, _ := Config(workingPath, "test.env")
+	c, _ := Config(workingPath, "test")
 
 	s, err := NewSES(c)
 	assert.Nil(t, err)
@@ -50,7 +50,7 @@ func TestSES_SendWithInvalidSender(t *testing.T) {
 	dirs := strings.SplitAfter(workingPath, "forgolang_forum")
 	workingPath = dirs[0]
 
-	c, _ := Config(workingPath, "test.env")
+	c, _ := Config(workingPath, "test")
 
 	s, err := NewSES(c)
 	assert.Nil(t, err)
