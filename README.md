@@ -6,17 +6,17 @@
  <h1 align="center">forgolang</h1>
 
  <p align="center">
-   <a href="https://circleci.com/gh/forgolang/forgolang_forum">
-    <img src="https://circleci.com/gh/forgolang/forgolang_forum.svg?style=svg"/>
+   <a href="https://circleci.com/gh/streetbyters/forgolang_forum">
+    <img src="https://circleci.com/gh/streetbyters/forgolang_forum.svg?style=svg"/>
    </a>
-   <a href="https://github.com/forgolang/forgolang_forum/blob/master/LICENSE">
-    <img src="https://img.shields.io/github/license/forgolang/forgolang_forum"/>
+   <a href="https://github.com/streetbyters/forgolang_forum/blob/master/LICENSE">
+    <img src="https://img.shields.io/github/license/streetbyters/forgolang_forum"/>
    </a>
-   <a href="https://codecov.io/gh/forgolang/forgolang_forum">
-     <img src="https://codecov.io/gh/forgolang/forgolang_forum/branch/master/graph/badge.svg" />
+   <a href="https://codecov.io/gh/streetbyters/forgolang_forum">
+     <img src="https://codecov.io/gh/streetbyters/forgolang_forum/branch/master/graph/badge.svg" />
    </a>
-   <a href="https://goreportcard.com/report/github.com/forgolang/forgolang_forum">
-    <img src="https://goreportcard.com/badge/github.com/forgolang/forgolang_forum"/>
+   <a href="https://goreportcard.com/report/github.com/streetbyters/forgolang_forum">
+    <img src="https://goreportcard.com/badge/github.com/streetbyters/forgolang_forum"/>
    </a>
  </p>
 
@@ -41,7 +41,7 @@ That's all for now. :)
 
 ## Development
 ```shell script
-git clone -b develop https://github.com/forgolang/forgolang_forum
+git clone -b develop https://github.com/streetbyters/forgolang_forum
 
 go mod vendor
 
