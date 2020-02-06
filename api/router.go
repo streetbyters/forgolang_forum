@@ -1,4 +1,4 @@
-// Copyright 2019 Forgolang Community
+// Copyright 2019 Street Byters Community
 // Licensed to the Apache Software Foundation (ASF) under one or more
 // contributor license agreements.  See the NOTICE file distributed with
 // this work for additional information regarding copyright ownership.
@@ -22,9 +22,9 @@ import (
 	"errors"
 	"fmt"
 	"forgolang_forum/model"
-	errors2 "github.com/akdilsiz/agente/errors"
 	"github.com/akdilsiz/limiterphi"
 	"github.com/fate-lovely/phi"
+	errors2 "github.com/streetbyters/agente/errors"
 	"github.com/ulule/limiter/v3"
 	sredis "github.com/ulule/limiter/v3/drivers/store/redis"
 	"github.com/valyala/fasthttp"

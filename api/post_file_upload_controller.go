@@ -22,38 +22,43 @@ import (
 	model2 "forgolang_forum/model"
 	"github.com/fate-lovely/phi"
 	"github.com/valyala/fasthttp"
+	"path/filepath"
+	"strconv"
 )
 
-// LogoutController user authentication invalidation controller
-type LogoutController struct {
+type PostFileController struct {
 	Controller
 	*API
 }
 
-// Create passphrase invalidation with params
-func (c LogoutController) Create(ctx *fasthttp.RequestCtx) {
-	userID := phi.URLParam(ctx, "userID")
-	passphraseID := phi.URLParam(ctx, "passphraseID")
-
-	var passphrase model.UserPassphrase
-	var passphraseInvalidation model.UserPassphraseInvalidation
+func (c PostFileController) Create(ctx *fasthttp.RequestCtx) {
+	var post model.Post
 	c.GetDB().QueryRowWithModel(fmt.Sprintf(`
-		SELECT p.* FROM %s AS p
-		LEFT OUTER JOIN %s AS pi ON p.id = pi.passphrase_id
-		WHERE pi.passphrase_id IS NULL AND p.id = $1 AND p.user_id = $2
-	`, passphrase.TableName(),
-		passphraseInvalidation.TableName()),
-		&passphrase,
-		passphraseID,
-		userID).Force()
+		SELECT * FROM %s AS p
+		WHERE p.id = $1
+	`, post.TableName()),
+		&post,
+		phi.URLParam(ctx, "postID")).Force()
 
-	passphraseInvalidation.PassphraseID = passphrase.ID
-	passphraseInvalidation.SourceUserID.SetValid(c.GetAuthContext(ctx).ID)
+	file, err := ctx.FormFile("file")
+	if err != nil {
+		c.JSONResponse(ctx, model2.ResponseError{
+			Errors: nil,
+			Detail: err.Error(),
+		}, fasthttp.StatusBadRequest)
+		return
+	}
 
-	c.GetDB().Insert(new(model.UserPassphraseInvalidation), &passphraseInvalidation,
-		"id")
+	c.App.Storage.Upload(file,
+		filepath.Join("posts", strconv.FormatInt(post.ID, 10), "files",
+			file.Filename),
+		"public-read")
+
+	resp := make(map[string]string)
+	resp["filename"] = file.Filename
+	resp["path"] = filepath.Join("posts", strconv.FormatInt(post.ID, 10), "files")
 
 	c.JSONResponse(ctx, model2.ResponseSuccessOne{
-		Data: passphraseInvalidation,
+		Data: resp,
 	}, fasthttp.StatusCreated)
 }

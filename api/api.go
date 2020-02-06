@@ -1,4 +1,4 @@
-// Copyright 2019 Forgolang Community
+// Copyright 2019 Street Byters Community
 // Licensed to the Apache Software Foundation (ASF) under one or more
 // contributor license agreements.  See the NOTICE file distributed with
 // this work for additional information regarding copyright ownership.
@@ -26,9 +26,9 @@ import (
 	model2 "forgolang_forum/database/model"
 	"forgolang_forum/model"
 	"forgolang_forum/utils"
-	pluggableError "github.com/akdilsiz/agente/errors"
 	"github.com/go-redis/redis"
 	"github.com/olivere/elastic/v7"
+	pluggableError "github.com/streetbyters/agente/errors"
 	"github.com/valyala/fasthttp"
 	"net/url"
 	"strconv"
@@ -36,11 +36,11 @@ import (
 
 // API rest api structure
 type API struct {
-	App             *cmn.App
-	Router          *Router
-	JWTAuth         *JWTAuth
-	Authorization   *Authorization
-	Languages       []model2.Language
+	App           *cmn.App
+	Router        *Router
+	JWTAuth       *JWTAuth
+	Authorization *Authorization
+	Languages     []model2.Language
 }
 
 // NewAPI building api
