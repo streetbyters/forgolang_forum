@@ -3,13 +3,11 @@ module forgolang_forum
 go 1.13
 
 require (
-	github.com/akdilsiz/agente v0.0.0-20191229212652-e64886965a76
 	github.com/akdilsiz/limiterphi v0.0.0-20200107225320-8366c0e10dfb
 	github.com/aws/aws-sdk-go v1.27.0
 	github.com/dgrijalva/jwt-go v3.2.0+incompatible
 	github.com/fate-lovely/phi v0.0.0-20171026043140-ee6510b82038
 	github.com/go-redis/redis v6.15.6+incompatible
-	github.com/go-redis/redis/v7 v7.0.0-beta.4
 	github.com/go-resty/resty/v2 v2.1.0
 	github.com/go-sql-driver/mysql v1.4.1
 	github.com/google/go-github/v28 v28.1.1
@@ -23,6 +21,7 @@ require (
 	github.com/shopspring/decimal v0.0.0-20191130220710-360f2bc03045
 	github.com/spf13/viper v1.6.1
 	github.com/streadway/amqp v0.0.0-20190827072141-edfb9018d271
+	github.com/streetbyters/agente v0.0.0-20200206123713-9b967ec52ece
 	github.com/stretchr/testify v1.4.0
 	github.com/ulule/limiter/v3 v3.3.3
 	github.com/valyala/fasthttp v1.8.0

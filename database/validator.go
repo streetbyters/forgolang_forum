@@ -1,8 +1,8 @@
 package database
 
 import (
-	"github.com/akdilsiz/agente/utils"
 	"github.com/lib/pq"
+	"github.com/streetbyters/agente/utils"
 	"gopkg.in/go-playground/validator.v9"
 	"reflect"
 	"strings"

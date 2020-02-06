@@ -1,4 +1,4 @@
-// Copyright 2019 Forgolang Community
+// Copyright 2019 Street Byters Community
 // Licensed to the Apache Software Foundation (ASF) under one or more
 // contributor license agreements.  See the NOTICE file distributed with
 // this work for additional information regarding copyright ownership.
@@ -34,7 +34,8 @@ func GenerateBase(app *cmn.App, args interface{}) error {
 	reset := GetArg("Reset", args).(bool)
 
 	if reset {
-		_, err := app.ElasticClient.DeleteIndex("users", "posts").Do(context.TODO())
+		app.Cache.FlushDB()
+		_, err := app.ElasticClient.DeleteIndex("users", "posts", "comments").Do(context.TODO())
 		if err != nil {
 			panic(err)
 		}
@@ -58,6 +59,13 @@ func GenerateBase(app *cmn.App, args interface{}) error {
 	}
 	_, err = app.ElasticClient.
 		CreateIndex("posts").
+		Body(elasticBody).
+		Do(context.TODO())
+	if err != nil {
+		panic(err)
+	}
+	_, err = app.ElasticClient.
+		CreateIndex("comments").
 		Body(elasticBody).
 		Do(context.TODO())
 	if err != nil {

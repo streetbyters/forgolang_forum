@@ -1,4 +1,4 @@
-// Copyright 2019 Forgolang Community
+// Copyright 2019 Street Byters Community
 // Licensed to the Apache Software Foundation (ASF) under one or more
 // contributor license agreements.  See the NOTICE file distributed with
 // this work for additional information regarding copyright ownership.
@@ -75,9 +75,9 @@ func (c LoginController) Create(ctx *fasthttp.RequestCtx) {
 
 	c.JSONResponse(ctx, model.ResponseSuccessOne{
 		Data: model.LoginResponse{
-			PassphraseID: userPassphrase.ID,
+			PassphraseID: userPassphraseModel.ID,
 			UserID:       userModel.ID,
-			Passphrase:   userPassphrase.Passphrase,
+			Passphrase:   userPassphraseModel.Passphrase,
 		},
 	}, fasthttp.StatusCreated)
 }

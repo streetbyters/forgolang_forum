@@ -1,4 +1,4 @@
-// Copyright 2019 Forgolang Community
+// Copyright 2019 Street Byters Community
 // Licensed to the Apache Software Foundation (ASF) under one or more
 // contributor license agreements.  See the NOTICE file distributed with
 // this work for additional information regarding copyright ownership.
@@ -19,7 +19,7 @@ package model
 import (
 	"forgolang_forum/database"
 	"forgolang_forum/model"
-	"github.com/akdilsiz/agente/utils"
+	"github.com/streetbyters/agente/utils"
 	"time"
 )
 
