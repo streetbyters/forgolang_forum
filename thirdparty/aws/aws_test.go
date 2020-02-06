@@ -12,7 +12,7 @@ func Test_ConfigWithoutSender(t *testing.T) {
 	dirs := strings.SplitAfter(workingPath, "forgolang_forum")
 	workingPath = dirs[0]
 
-	config, err := Config(workingPath, "test.env")
+	config, err := Config(workingPath, "test")
 
 	assert.Nil(t, err)
 	assert.NotNil(t, config["ses_access_key_id"])

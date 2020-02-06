@@ -1,4 +1,4 @@
-// Copyright 2019 Street Byters Community
+// Copyright 2019 StreetByters Community
 // Licensed to the Apache Software Foundation (ASF) under one or more
 // contributor license agreements.  See the NOTICE file distributed with
 // this work for additional information regarding copyright ownership.
@@ -25,6 +25,7 @@ import (
 
 // Config aws package
 func Config(workingPath string, envFile string) (map[string]string, error) {
+	viper.SetConfigType("env")
 	viper.SetConfigName(envFile)
 	viper.AddConfigPath(workingPath)
 	err := viper.ReadInConfig()

@@ -1,5 +1,5 @@
 //-build !test
-// Copyright 2019 Street Byters Community
+// Copyright 2019 StreetByters Community
 // Licensed to the Apache Software Foundation (ASF) under one or more
 // contributor license agreements.  See the NOTICE file distributed with
 // this work for additional information regarding copyright ownership.
@@ -103,7 +103,7 @@ func NewSuite() *Suite {
 	var mode model.MODE
 	var dbPath string
 
-	configFile := "test.env"
+	configFile := "test"
 	appPath, _ := os.Getwd()
 	dirs := strings.SplitAfter(appPath, "forgolang_forum")
 
@@ -113,6 +113,7 @@ func NewSuite() *Suite {
 
 	logger := utils.NewLogger(string(mode))
 	defaultLogger = logger
+	viper.SetConfigType("env")
 	viper.SetConfigName(configFile)
 	viper.AddConfigPath(appPath)
 	err := viper.ReadInConfig()

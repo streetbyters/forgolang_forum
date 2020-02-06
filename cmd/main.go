@@ -1,4 +1,4 @@
-// Copyright 2019 Street Byters Community
+// Copyright 2019 StreetByters Community
 // Licensed to the Apache Software Foundation (ASF) under one or more
 // contributor license agreements.  See the NOTICE file distributed with
 // this work for additional information regarding copyright ownership.
@@ -81,11 +81,12 @@ func main() {
 	}
 
 	if configFile == "" {
-		configFile = string(mode) + ".env"
+		configFile = string(mode)
 	}
 
 	logger := utils.NewLogger(string(mode))
 
+	viper.SetConfigType("env")
 	viper.SetConfigName(configFile)
 	viper.AddConfigPath(appPath)
 	err := viper.ReadInConfig()
