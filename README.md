@@ -30,6 +30,9 @@ But you can also use it as a small framework. :)
  - [ ] Notification system integration
  - [ ] CI/CD Tools integration
 
+
+***Switching to DDD architecture. It will work soon and a more streamlined development environment will be released.
+
 That's all for now. :)
 
 ## Requirements
