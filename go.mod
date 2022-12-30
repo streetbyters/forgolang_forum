@@ -4,12 +4,12 @@ go 1.13
 
 require (
 	github.com/akdilsiz/limiterphi v0.0.0-20200107225320-8366c0e10dfb
-	github.com/aws/aws-sdk-go v1.27.0
+	github.com/aws/aws-sdk-go v1.33.0
 	github.com/dgrijalva/jwt-go v3.2.0+incompatible
 	github.com/fate-lovely/phi v0.0.0-20171026043140-ee6510b82038
 	github.com/go-redis/redis v6.15.6+incompatible
 	github.com/go-resty/resty/v2 v2.1.0
-	github.com/go-sql-driver/mysql v1.4.1
+	github.com/go-sql-driver/mysql v1.5.0
 	github.com/google/go-github/v28 v28.1.1
 	github.com/google/uuid v1.1.1
 	github.com/gosimple/slug v1.9.0
@@ -22,7 +22,7 @@ require (
 	github.com/spf13/viper v1.6.1
 	github.com/streadway/amqp v0.0.0-20190827072141-edfb9018d271
 	github.com/streetbyters/agente v0.0.0-20200206123713-9b967ec52ece
-	github.com/stretchr/testify v1.4.0
+	github.com/stretchr/testify v1.5.1
 	github.com/ulule/limiter/v3 v3.3.3
 	github.com/valyala/fasthttp v1.8.0
 	golang.org/x/crypto v0.0.0-20191227163750-53104e6ec876
